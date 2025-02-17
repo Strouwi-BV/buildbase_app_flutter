@@ -1,6 +1,6 @@
 {
-    "name": "test_flutter",
-    "short_name": "test_flutter",
+    "name": "flutter_poc_reloaded",
+    "short_name": "flutter_poc_reloaded",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
