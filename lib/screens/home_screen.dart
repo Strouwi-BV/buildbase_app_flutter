@@ -18,6 +18,12 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                context.go('/clock-in', extra: 12345);
+              },
+              child: Text("Clock In")
+            ),
+            ElevatedButton(
+              onPressed: () {
                 context.go('/location/37.7749/-122.4194'); //example coords
               },
               child: Text("Go to Location"),
