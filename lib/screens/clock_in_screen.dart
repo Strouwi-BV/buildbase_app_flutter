@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class ClockInScreen extends StatelessWidget {
-  final int employeeId;
-  ClockInScreen({required this.employeeId});
+  // final int employeeId;
+  // ClockInScreen({required this.employeeId});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class ClockInScreen extends StatelessWidget {
             context.go('/');
           }
         },
-        child: Center(child: Text("Employee ID: $employeeId")),
+        // child: Center(child: Text("Employee ID: $employeeId")),
       ),
     );
   }
