@@ -8,11 +8,14 @@ plugins {
 android {
     namespace = "com.example.flutter_poc_reloaded"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"  // Voeg deze regel toe
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+
+        // core library desugaring instellen
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -41,4 +44,16 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21")
+    implementation("androidx.core:core-ktx:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("com.google.android.material:material:1.4.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
+    implementation("androidx.annotation:annotation:1.2.0")
+
+    // Bijwerk naar desugar_jdk_libs versie 1.2.2 of hoger
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.2.2")
 }

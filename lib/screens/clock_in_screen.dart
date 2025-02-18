@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
@@ -14,14 +17,10 @@ class _ClockInScreenState extends State<ClockInScreen> {
   final StopWatchTimer _stopWatchTimer = StopWatchTimer(mode: StopWatchMode.countUp);
   bool isClockedIn = false;
   List<String> timeStamps = [];
-
-  // State-variabelen voor registratie
-  bool _registrationCompleted = false;
   final _formKey = GlobalKey<FormState>();
+  bool _registrationCompleted = false;
   String? _selectedKlantnaam;
   String? _selectedProjectnaam;
-
-  // Opties voor de dropdownmenu's
   final List<String> _klantnamen = ['Strouwi', 'Klant B', 'Klant C'];
   final List<String> _projectnamen = ['Buildbase app', 'Project X', 'Project Y'];
 
@@ -36,6 +35,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       isClockedIn = true;
       _stopWatchTimer.onStartTimer();
       timeStamps.add('Ingeklokt: ${_formatDateTime(DateTime.now())}');
+      _scheduleNotificationUpdates();
     });
   }
 
@@ -45,17 +45,46 @@ class _ClockInScreenState extends State<ClockInScreen> {
       _stopWatchTimer.onStopTimer();
       _stopWatchTimer.onResetTimer();
       timeStamps.add('Uitgeklokt: ${_formatDateTime(DateTime.now())}');
+      _cancelNotification();
     });
   }
 
-  void _removeTimeStamp(int index) {
-    setState(() {
-      timeStamps.removeAt(index);
+  void _scheduleNotificationUpdates() {
+    _stopWatchTimer.rawTime.listen((value) {
+      _showNotification(value);
     });
+  }
+
+  void _showNotification(int timerValue) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'your_channel_id',
+      'your_channel_name',
+      channelDescription: 'your_channel_description',
+      importance: Importance.max,
+      priority: Priority.high,
+      ongoing: true,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction('CLOCK_OUT', 'Uitklokken'),
+      ],
+      timeoutAfter: 5000,  // Meldingen blijven staan, maar verdwijnen na 5 seconden van het scherm
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Timer Running',
+      'Elapsed Time: ${_formatTime(timerValue)}',
+      platformChannelSpecifics,
+      payload: 'CLOCK_OUT',
+    );
+  }
+
+  void _cancelNotification() {
+    flutterLocalNotificationsPlugin.cancel(0);
   }
 
   String _formatDateTime(DateTime dateTime) {
-    // Formatteer datum en tijd zonder milliseconden
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
@@ -75,6 +104,12 @@ class _ClockInScreenState extends State<ClockInScreen> {
         _registrationCompleted = true;
       });
     }
+  }
+
+  void _removeTimeStamp(int index) {
+    setState(() {
+      timeStamps.removeAt(index);
+    });
   }
 
   @override
