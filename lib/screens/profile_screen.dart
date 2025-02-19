@@ -29,11 +29,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // void updateUserProfile() async {
-  //   final success = await ApiSerive.updateUserProfile(widget.userId, {
-  //     "name": "Updated Name",
-  //     "age": userProfile?['age'] ?? 25,
-  //   });
+   void updateUserProfile() async {
+     final success = await ApiSerive.updateUserProfile(widget.userId, {
+       "name": "Updated Name",
+       "age": userProfile?['age'] ?? 25,
+     });
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Profile updated!")));

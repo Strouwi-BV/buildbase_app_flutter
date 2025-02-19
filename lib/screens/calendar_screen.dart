@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:calendar_view/calendar_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
@@ -14,14 +14,13 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  Map<DateTime, List<String>> _events = {};
-  DateTime _focusedDay = DateTime.now();
-  DateTime _selectedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  late EventController _eventController;
+  String _currentViewType = 'Month';
 
   @override
   void initState() {
     super.initState();
+    _eventController = EventController();
     _loadEvents();
   }
 
@@ -29,20 +28,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final prefs = await SharedPreferences.getInstance();
     List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
     setState(() {
-      _events = _groupEventsByDate(timeStamps);
-    });
-  }
-
-  Map<DateTime, List<String>> _groupEventsByDate(List<String> timeStamps) {
-    Map<DateTime, List<String>> events = {};
-    for (String timeStamp in timeStamps) {
-      DateTime date = _extractDateFromTimeStamp(timeStamp);
-      if (events[date] == null) {
-        events[date] = [];
+      for (String timeStamp in timeStamps) {
+        DateTime date = _extractDateFromTimeStamp(timeStamp);
+        _eventController.add(CalendarEventData(
+          date: date,
+          title: timeStamp,
+          startTime: date,
+          endTime: date.add(Duration(hours: 1)), // Voeg een eindtijd toe
+        ));
       }
-      events[date]!.add(timeStamp);
-    }
-    return events;
+    });
   }
 
   DateTime _extractDateFromTimeStamp(String timeStamp) {
@@ -50,8 +45,133 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return DateFormat('yyyy-MM-dd').parse(dateString);
   }
 
-  DateTime get firstDay => DateTime(2022);
-  DateTime get lastDay => DateTime(2026);
+  void _createEvent(DateTime date) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        TextEditingController eventTextController = TextEditingController();
+        DateTime selectedDate = date;
+        TimeOfDay selectedStartTime = TimeOfDay.now();
+        TimeOfDay selectedEndTime = TimeOfDay.now();
+
+        return AlertDialog(
+          title: Text('Nieuw evenement'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: eventTextController,
+                decoration: InputDecoration(hintText: 'Voer evenement details in'),
+              ),
+              SizedBox(height: 8.0),
+              TextButton(
+                child: Text('Kies Datum'),
+                onPressed: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(DateTime.now().year - 1),
+                    lastDate: DateTime(DateTime.now().year + 1),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      selectedDate = pickedDate;
+                    });
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('Kies Begintijd'),
+                onPressed: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: selectedStartTime,
+                  );
+                  if (pickedTime != null) {
+                    setState(() {
+                      selectedStartTime = pickedTime;
+                    });
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('Kies Eindtijd'),
+                onPressed: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: selectedEndTime,
+                  );
+                  if (pickedTime != null) {
+                    setState(() {
+                      selectedEndTime = pickedTime;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Annuleren'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Opslaan'),
+              onPressed: () {
+                if (eventTextController.text.isNotEmpty) {
+                  DateTime eventStartDateTime = DateTime(
+                    selectedDate.year,
+                    selectedDate.month,
+                    selectedDate.day,
+                    selectedStartTime.hour,
+                    selectedStartTime.minute,
+                  );
+                  DateTime eventEndDateTime = DateTime(
+                    selectedDate.year,
+                    selectedDate.month,
+                    selectedDate.day,
+                    selectedEndTime.hour,
+                    selectedEndTime.minute,
+                  );
+                  setState(() {
+                    _eventController.add(CalendarEventData(
+                      date: eventStartDateTime,
+                      title: eventTextController.text,
+                      startTime: eventStartDateTime,
+                      endTime: eventEndDateTime,
+                    ));
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _viewEventDetails(CalendarEventData event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(event.title),
+          content: Text('Begintijd: ${DateFormat('yyyy-MM-dd HH:mm').format(event.startTime!)}\nEindtijd: ${DateFormat('yyyy-MM-dd HH:mm').format(event.endTime!)}'),
+          actions: [
+            TextButton(
+              child: Text('Sluiten'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,80 +183,78 @@ class _CalendarScreenState extends State<CalendarScreen> {
           onPressed: () => context.go('/'), // Navigatie terug naar home
         ),
         actions: [
-          PopupMenuButton<CalendarFormat>(
-            onSelected: (format) {
+          IconButton(
+            icon: Icon(Icons.today),
+            onPressed: () {
+              // Gebruik de juiste methode om naar de huidige datum te springen
+              _eventController.add(CalendarEventData(
+                date: DateTime.now(),
+                title: 'Today',
+                startTime: DateTime.now(),
+                endTime: DateTime.now().add(Duration(hours: 1)), // Voeg een eindtijd toe
+              ));
+            },
+          ),
+          PopupMenuButton<String>(
+            onSelected: (viewType) {
               setState(() {
-                _calendarFormat = format;
+                _currentViewType = viewType;
               });
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: CalendarFormat.month,
+                value: 'Month',
                 child: Text('Maand Kalender'),
               ),
               PopupMenuItem(
-                value: CalendarFormat.week,
+                value: 'Week',
                 child: Text('Week Kalender'),
               ),
+              PopupMenuItem(
+                value: 'Day',
+                child: Text('Dag Kalender'),
+              ),
             ],
-            icon: Icon(Icons.filter_alt),
+            icon: Icon(Icons.view_agenda),
           ),
         ],
       ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity! > 0) {
-            context.go('/'); // Navigatie terug naar home
-          }
-        },
-        child: Column(
-          children: [
-            TableCalendar(
-              firstDay: firstDay,
-              lastDay: lastDay,
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              selectedDayPredicate: (day) {
-                return isSameDay(_selectedDay, day);
-              },
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-              },
-              eventLoader: (day) {
-                return _events[day] ?? [];
-              },
-            ),
-            const SizedBox(height: 8.0),
-            Expanded(
-              child: _buildEventList(),
-            ),
-          ],
-        ),
+      body: _getCurrentView(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _createEvent(DateTime.now()),
+        child: Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildEventList() {
-    List<String> selectedDayEvents = _events[_selectedDay] ?? [];
-    if (selectedDayEvents.isEmpty) {
-      return Center(child: Text('Geen evenementen voor deze dag.'));
-    } else {
-      return ListView.builder(
-        itemCount: selectedDayEvents.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(selectedDayEvents[index]),
-          );
-        },
-      );
+  Widget _getCurrentView() {
+    switch (_currentViewType) {
+      case 'Week':
+        return WeekView(
+          controller: _eventController,
+          onEventTap: (events, date) {
+            _viewEventDetails(events.first);
+          },
+        );
+      case 'Day':
+        return DayView(
+          controller: _eventController,
+          onEventTap: (events, date) {
+            _viewEventDetails(events.first);
+          },
+        );
+      case 'Month':
+      default:
+        return MonthView(
+          controller: _eventController,
+          onCellTap: (events, date) {
+            if (events.isNotEmpty) {
+              _viewEventDetails(events.first);
+            } else {
+              _createEvent(date);
+            }
+          },
+        );
     }
   }
 }
