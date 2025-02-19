@@ -42,18 +42,13 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-    );
+    return MaterialApp.router(routerConfig: _router);
   }
 }
 
 final GoRouter _router = GoRouter(
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => HomeScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => HomeScreen()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
@@ -70,16 +65,15 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/location/:latitude/:longitude',
       builder: (context, state) {
-        final double latitude = double.parse(state.pathParameters['latitude']!);
-        final double longitude = double.parse(state.pathParameters['longitude']!);
-        return LocationScreen(latitude: latitude, longitude: longitude);
+        return LocationScreen();
       },
     ),
     GoRoute(
-      path: '/profile',
+      path: '/profile/:userId',
       builder: (context, state) {
-        final Map<String, dynamic>? userProfile = state.extra as Map<String, dynamic>?;
-        return ProfileScreen(userProfile: userProfile ?? {"name": "Guest", "age": 0});
+        final int userId = int.parse(state.pathParameters['userId']!);
+        // final Map<String, dynamic>? userProfile = state.extra as Map<String, dynamic>?;
+        return ProfileScreen(userId: userId);
       },
     ),
   ],

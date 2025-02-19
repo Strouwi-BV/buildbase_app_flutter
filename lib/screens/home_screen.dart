@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                context.go('/profile', extra : {"name" : "John Doe" , "age" : 30});
+                context.go('/profile/1');
               },
               child: Text("Go to Profile"),
             ),
