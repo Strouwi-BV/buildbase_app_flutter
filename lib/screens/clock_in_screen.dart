@@ -23,6 +23,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   String? _selectedProjectnaam;
   final List<String> _klantnamen = ['Strouwi', 'Klant B', 'Klant C'];
   final List<String> _projectnamen = ['Buildbase app', 'Project X', 'Project Y'];
+  Map<DateTime, List<String>> _events = {};
 
   @override
   void dispose() {
@@ -34,7 +35,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
     setState(() {
       isClockedIn = true;
       _stopWatchTimer.onStartTimer();
-      timeStamps.add('Ingeklokt: ${_formatDateTime(DateTime.now())}');
+      String timeStamp = 'Ingeklokt: ${_formatDateTime(DateTime.now())}';
+      timeStamps.add(timeStamp);
+
+      DateTime today = DateTime.now();
+      if (_events[today] == null) {
+        _events[today] = [];
+      }
+      _events[today]!.add(timeStamp);
+
       _scheduleNotificationUpdates();
     });
   }
@@ -44,7 +53,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
       isClockedIn = false;
       _stopWatchTimer.onStopTimer();
       _stopWatchTimer.onResetTimer();
-      timeStamps.add('Uitgeklokt: ${_formatDateTime(DateTime.now())}');
+      String timeStamp = 'Uitgeklokt: ${_formatDateTime(DateTime.now())}';
+      timeStamps.add(timeStamp);
+
+      DateTime today = DateTime.now();
+      if (_events[today] == null) {
+        _events[today] = [];
+      }
+      _events[today]!.add(timeStamp);
+
       _cancelNotification();
     });
   }
