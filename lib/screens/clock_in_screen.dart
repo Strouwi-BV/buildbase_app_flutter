@@ -82,8 +82,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'your_channel_id',
-      'Strouwi, Buildbase app Clock in',
-      channelDescription: 'Notification for clock in and timer running for Strouwi Buildbase app project',
+      'Clock in',
+      channelDescription: 'Notification for clock in and timer running',
       importance: Importance.max,
       priority: Priority.high,
       ongoing: true,
@@ -96,7 +96,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
         NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       0,
-      'Strouwi, Buildbase app Clock in',
+      'Clock in',
       'Time Clocked In: ${_formatTime(timerValue)}',
       platformChannelSpecifics,
       payload: 'CLOCK_OUT',
@@ -108,7 +108,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); // Datum en tijd
   }
 
   String _formatTime(int rawTime) {

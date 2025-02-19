@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class CalendarScreen extends StatefulWidget {
   final String data;
@@ -20,7 +22,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _focusedDay = DateTime.now().isBefore(lastDay) ? DateTime.now() : lastDay;
+    _loadEvents();
+  }
+
+  void _loadEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
+    setState(() {
+      _events = _groupEventsByDate(timeStamps);
+    });
+  }
+
+  Map<DateTime, List<String>> _groupEventsByDate(List<String> timeStamps) {
+    Map<DateTime, List<String>> events = {};
+    for (String timeStamp in timeStamps) {
+      DateTime date = _extractDateFromTimeStamp(timeStamp);
+      if (events[date] == null) {
+        events[date] = [];
+      }
+      events[date]!.add(timeStamp);
+    }
+    return events;
+  }
+
+  DateTime _extractDateFromTimeStamp(String timeStamp) {
+    String dateString = timeStamp.split(' ')[0]; // Extract date part
+    return DateFormat('yyyy-MM-dd').parse(dateString);
   }
 
   DateTime get firstDay => DateTime(2022);
@@ -33,13 +60,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: Text('Calendar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'), // Zelfde methode als in LocationScreen
+          onPressed: () => context.go('/'), // Navigatie terug naar home
         ),
+        actions: [
+          PopupMenuButton<CalendarFormat>(
+            onSelected: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: CalendarFormat.month,
+                child: Text('Maand Kalender'),
+              ),
+              PopupMenuItem(
+                value: CalendarFormat.week,
+                child: Text('Week Kalender'),
+              ),
+            ],
+            icon: Icon(Icons.filter_alt),
+          ),
+        ],
       ),
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
           if (details.primaryVelocity! > 0) {
-            context.go('/'); // Zelfde methode als in LocationScreen
+            context.go('/'); // Navigatie terug naar home
           }
         },
         child: Column(
@@ -60,19 +107,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
-                  _focusedDay = focusedDay.isBefore(lastDay) ? focusedDay : lastDay;
+                  _focusedDay = focusedDay;
                 });
               },
               eventLoader: (day) {
                 return _events[day] ?? [];
               },
             ),
-            ...(_events[_selectedDay] ?? []).map((event) => ListTile(
-                  title: Text(event),
-                )),
+            const SizedBox(height: 8.0),
+            Expanded(
+              child: _buildEventList(),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildEventList() {
+    List<String> selectedDayEvents = _events[_selectedDay] ?? [];
+    if (selectedDayEvents.isEmpty) {
+      return Center(child: Text('Geen evenementen voor deze dag.'));
+    } else {
+      return ListView.builder(
+        itemCount: selectedDayEvents.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(selectedDayEvents[index]),
+          );
+        },
+      );
+    }
   }
 }
