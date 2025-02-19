@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
@@ -6,7 +7,35 @@ import '/screens/location_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+
+  flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
+      if (notificationResponse.payload == 'CLOCK_OUT') {
+        print('Clock out via notification');
+        // Handle clock out action here
+      }
+    },
+  );
+
+  final AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'your_channel_id',
+    'your_channel_name',
+    description: 'your_channel_description',
+    importance: Importance.max,
+  );
+
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
   runApp(MyApp());
 }
 
@@ -17,7 +46,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Define GoRouterConfig
 final GoRouter _router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => HomeScreen()),
@@ -31,8 +59,6 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/clock-in',
       builder: (context, state) {
-        // final int? employeeId = state.extra as int?;
-        // return ClockInScreen(employeeId: employeeId ?? 0);
         return ClockInScreen();
       },
     ),
