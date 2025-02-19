@@ -59,22 +59,22 @@ class _ClockInScreenState extends State<ClockInScreen> {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'your_channel_id',
-      'your_channel_name',
-      channelDescription: 'your_channel_description',
+      'Strouwi, Buildbase app Clock in',
+      channelDescription: 'Notification for clock in and timer running for Strouwi Buildbase app project',
       importance: Importance.max,
       priority: Priority.high,
       ongoing: true,
       actions: <AndroidNotificationAction>[
         AndroidNotificationAction('CLOCK_OUT', 'Uitklokken'),
       ],
-      timeoutAfter: 5000,  // Meldingen blijven staan, maar verdwijnen na 5 seconden van het scherm
+      timeoutAfter: 5000,
     );
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       0,
-      'Timer Running',
-      'Elapsed Time: ${_formatTime(timerValue)}',
+      'Strouwi, Buildbase app Clock in',
+      'Time Clocked In: ${_formatTime(timerValue)}',
       platformChannelSpecifics,
       payload: 'CLOCK_OUT',
     );
