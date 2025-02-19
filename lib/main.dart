@@ -51,10 +51,11 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/profile',
+      path: '/profile/:userId',
       builder: (context, state) {
-        final Map<String, dynamic>? userProfile = state.extra as Map<String, dynamic>?;
-        return ProfileScreen(userProfile: userProfile ?? {"name": "Guest", "age": 0});
+        final int userId = int.parse(state.pathParameters['userId']!);
+        // final Map<String, dynamic>? userProfile = state.extra as Map<String, dynamic>?;
+        return ProfileScreen(userId: userId);
       },
     ),
   ],
