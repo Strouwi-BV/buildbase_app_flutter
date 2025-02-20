@@ -4,6 +4,7 @@ import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'home_screen.dart' as custom_widgets;
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -139,12 +140,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
         title: const Text('Clock In'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
         ),
+        backgroundColor: const Color(0xff13263B),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
@@ -158,6 +162,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       ),
     );
   }
+
 
   Widget _buildRegistrationForm() {
     return SingleChildScrollView(
@@ -294,4 +299,5 @@ class _ClockInScreenState extends State<ClockInScreen> {
       ],
     );
   }
+
 }
