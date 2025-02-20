@@ -177,12 +177,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
         title: Text('Calendar'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'), // Navigatie terug naar home
-        ),
+        backgroundColor: const Color(0xff13263B),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(Icons.today),

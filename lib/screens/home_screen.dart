@@ -4,43 +4,6 @@ import 'package:go_router/go_router.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
   @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(title: Text("Home")),
-  //     body: Center(
-  //       child: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           ElevatedButton(
-  //             onPressed: () {
-  //               context.go('/calendar', extra: "Meeting at 11:30 AM");
-  //             },
-  //             child: Text("Go to Calendar"),
-  //           ),
-  //           ElevatedButton(
-  //             onPressed: () {
-  //               context.go('/clock-in', extra: 12345);
-  //             },
-  //             child: Text("Clock In")
-  //           ),
-  //           ElevatedButton(
-  //             onPressed: () {
-  //               context.go('/location/37.7749/-122.4194'); //example coords
-  //             },
-  //             child: Text("Go to Location"),
-  //           ),
-  //           ElevatedButton(
-  //             onPressed: () {
-  //               context.go('/profile/1');
-  //             },
-  //             child: Text("Go to Profile"),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text(
