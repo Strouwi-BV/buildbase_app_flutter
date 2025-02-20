@@ -122,7 +122,7 @@ class NavigationDrawer extends StatelessWidget {
         title: const Text('Profile'),
         onTap: () {
           Navigator.pop(context);
-          context.go('/profile', extra: {"name": "John Doe", "age": 30});
+          context.go('/profile/1');
         },
       ),
     ],
