@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geolocator/geolocator.dart';
+import 'home_screen.dart' as custom_widgets;
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
@@ -71,12 +72,18 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
-        title: const Text("Location"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+        title: const Text(
+          "Location",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: const Color(0xff13263B),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Center(
         child: Column(

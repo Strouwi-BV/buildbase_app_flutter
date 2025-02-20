@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../api/api_service.dart';
+import 'home_screen.dart' as custom_widgets;
+
 
 class ProfileScreen extends StatefulWidget {
   final int userId;
@@ -38,11 +40,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void updateUserProfile() async {
-    // final success = await ApiSerive.updateUserProfile(widget.userId, {
-    //   "name": "Updated Name",
-    //   "age": userProfile?['age'] ?? 25,
-    // });
+   void updateUserProfile() async {
+     final success = await ApiSerive.updateUserProfile(widget.userId, {
+       "name": "Updated Name",
+       "age": userProfile?['age'] ?? 25,
+     });
 
     if (_formKey.currentState!.validate()) {
       final success = await ApiSerive.updateUserProfile(widget.userId, {
@@ -64,12 +66,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
-        title: Text("Profile"),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: const Color(0xff13263B),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
