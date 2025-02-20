@@ -31,8 +31,6 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/clock-in',
       builder: (context, state) {
-        // final int? employeeId = state.extra as int?;
-        // return ClockInScreen(employeeId: employeeId ?? 0);
         return ClockInScreen();
       },
     ),
