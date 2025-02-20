@@ -22,7 +22,6 @@ class _LocationScreenState extends State<LocationScreen> {
 
 
 //Location Package
-//Deprecated for iOS
   void _requestLocationPermission() async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
