@@ -179,7 +179,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
-        title: Text('Calendar'),
+        title: Text('Calendar', style: TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xff13263B),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [

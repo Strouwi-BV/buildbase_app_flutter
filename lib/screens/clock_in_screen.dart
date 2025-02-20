@@ -142,7 +142,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     return Scaffold(
       drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
-        title: const Text('Clock In'),
+        title: const Text('Clock In', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xff13263B),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
