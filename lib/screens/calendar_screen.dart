@@ -42,8 +42,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   DateTime _extractDateFromTimeStamp(String timeStamp) {
-    String dateString = timeStamp.split(' ')[0]; // Extract date part
-    return DateFormat('yyyy-MM-dd').parse(dateString);
+    String dateString = timeStamp;
+
+    if (dateString.startsWith('Ingeklokt:')) {
+      dateString = dateString.substring('Ingeklokt:'.length);
+    } else if (dateString.startsWith('Uitgeklokt:')){
+      dateString = dateString.substring('Uitgeklokt:'.length);
+    }
+    dateString = dateString.trim();
+    return DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateString);
+    //String dateString = timeStamp.split(' ')[0]; // Extract date part
+
+  // final datePart = timeStamp.replaceAll(RegExp(r'^(Ingeklokt:|Uitgeklokt:)'), '').trim();
+  // return DateFormat('yyyy-MM-dd HH:mm:ss').parse(datePart);
+
   }
 
   void _createEvent(DateTime date) {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_poc_reloaded/service/user_preferences.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_service.dart';
 import 'home_screen.dart' as custom_widgets;
 import '../service/user_preferences.dart';
@@ -127,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     updateDetails();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("User details cleared!")),
     );
@@ -186,8 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: TextStyle(fontSize: 16),
                             ),
                           ),
-                          SizedBox(height: 20),
-                          // const Text("Update Profile", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 20),                          // const Text("Update Profile", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           // const SizedBox(height: 10),
                           // TextFormField(
                           //   controller: _nameController,

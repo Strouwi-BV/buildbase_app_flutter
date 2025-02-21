@@ -34,6 +34,11 @@
 	<string>We need to access your location to provide better services.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Allow access to you location while using the app.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true />
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -41,7 +46,12 @@
 		<string>location</string>
 		<string>processing</string>
 		<string>fetch</string>
+		<string>remote-notification</string>
 	</array>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>We use notifications to alert you about important updates!</string>
+	<key>NSPushNotificationsUsageDescription</key>
+	<string>This app requires notifications for important updates.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

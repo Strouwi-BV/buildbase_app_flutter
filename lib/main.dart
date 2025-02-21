@@ -12,13 +12,27 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+  final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
+    '@mipmap/ic_launcher'
+  );
+
+  final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
     requestSoundPermission: true,
     requestBadgePermission: true,
     requestAlertPermission: true,
+    onDidReceiveLocalNotification: (id, title, body, payload) async {
+      print("Received iOs Notification: $title, $body");
+    },
   );
-  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid, iOS: iosSettings);
+
+  
+
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid, 
+    iOS: iosSettings
+    
+  );
+  
 
   flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
@@ -29,6 +43,8 @@ void main() {
       }
     },
   );
+
+  
 
   final AndroidNotificationChannel channel = AndroidNotificationChannel(
     'your_channel_id',
@@ -41,8 +57,23 @@ void main() {
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
+  WidgetsFlutterBinding.ensureInitialized();
+
+  _requestiOSPermissons();
+
   runApp(MyApp());
 }
+
+void _requestiOSPermissons() {
+    flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation
+      <IOSFlutterLocalNotificationsPlugin>()
+      ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+      );
+  }
 
 class MyApp extends StatelessWidget {
   @override
