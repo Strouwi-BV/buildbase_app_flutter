@@ -139,7 +139,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     //     _showNotification(_stopWatchTimer.rawTime.value);
     //   }
     // });
-    _notificationTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _notificationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!isClockedIn) {
         timer.cancel();
       } else {
