@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
@@ -10,7 +11,8 @@ import '/screens/home_screen.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+
+  // var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
     '@mipmap/ic_launcher'
@@ -56,6 +58,8 @@ void main() {
   flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
+
+  // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   WidgetsFlutterBinding.ensureInitialized();
 
