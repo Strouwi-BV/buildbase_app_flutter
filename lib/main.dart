@@ -48,12 +48,15 @@ void main() async {
     onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
       print('Received notification response: ${notificationResponse.actionId}, ${notificationResponse.payload}');
       
-      // Check zowel actionId als payload
       if (notificationResponse.actionId == 'CLOCK_OUT' || notificationResponse.payload == 'CLOCK_OUT') {
+        // Uitklok actie
         print('Clock out via notification');
         if (ClockInScreen.instance != null) {
           await ClockInScreen.instance!.handleClockOut();
         }
+      } else {
+        // Normale tap op notificatie
+        _router.go('/clock-in');
       }
     },
   );

@@ -188,6 +188,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
           cancelNotification: false,
         ),
       ],
+      fullScreenIntent: true,
     );
 
     final NotificationDetails platformChannelSpecifics = NotificationDetails(
@@ -200,7 +201,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       'Clock in',
       'Time Clocked In: ${_formatTime(timerValue)}',
       platformChannelSpecifics,
-      payload: 'CLOCK_OUT',
+      payload: 'SHOW_CLOCK_IN', // Andere payload om onderscheid te maken met uitklokken
     );
   }
 
