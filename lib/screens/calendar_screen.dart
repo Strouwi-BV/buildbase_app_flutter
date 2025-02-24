@@ -28,17 +28,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _loadEvents() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
-    setState(() {
-      for (String timeStamp in timeStamps) {
-        DateTime date = _extractDateFromTimeStamp(timeStamp);
-        _eventController.add(CalendarEventData(
-          date: date,
-          title: timeStamp,
-          startTime: date,
-          endTime: date.add(Duration(hours: 1)), // Voeg een eindtijd toe
-        ));
+    
+    // Create maps to track clock-ins and clock-outs per day
+    Map<String, List<String>> clockEvents = {};
+    
+    // Process all timestamps
+    for (String timeStamp in timeStamps) {
+      DateTime date = _extractDateFromTimeStamp(timeStamp);
+      String dayKey = DateFormat('yyyy-MM-dd').format(date);
+      
+      if (!clockEvents.containsKey(dayKey)) {
+        clockEvents[dayKey] = [];
       }
-    });
+      clockEvents[dayKey]!.add(timeStamp);
+    }
+
+    // Add events for all days in the current month
+    DateTime now = DateTime.now();
+    DateTime firstDay = DateTime(now.year, now.month, 1);
+    DateTime lastDay = DateTime(now.year, now.month + 1, 0);
+
+    for (DateTime date = firstDay; date.isBefore(lastDay.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
+      // Skip coloring for weekends
+      if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+        continue;
+      }
+
+      // Skip coloring for future dates (except today)
+      if (date.isAfter(now) && DateFormat('yyyy-MM-dd').format(date) != DateFormat('yyyy-MM-dd').format(now)) {
+        continue;
+      }
+
+      String dayKey = DateFormat('yyyy-MM-dd').format(date);
+      List<String> events = clockEvents[dayKey] ?? [];
+      bool hasClockIn = events.any((e) => e.startsWith('Ingeklokt:'));
+      
+      CalendarEventData eventData = CalendarEventData(
+        date: date,
+        title: '', // Empty title as requested
+        startTime: date,
+        endTime: date.add(Duration(hours: 24)),
+        color: hasClockIn ? Colors.green.withOpacity(0.7) : Colors.red.withOpacity(0.7),
+        description: events.join('\n'), // Store all events for this day
+      );
+      _eventController.add(eventData);
+    }
+    setState(() {});
   }
 
   DateTime _extractDateFromTimeStamp(String timeStamp) {
@@ -51,11 +86,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     dateString = dateString.trim();
     return DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateString);
-    //String dateString = timeStamp.split(' ')[0]; // Extract date part
-
-  // final datePart = timeStamp.replaceAll(RegExp(r'^(Ingeklokt:|Uitgeklokt:)'), '').trim();
-  // return DateFormat('yyyy-MM-dd HH:mm:ss').parse(datePart);
-
   }
 
   void _createEvent(DateTime date) {
@@ -166,19 +196,216 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+ void _editTimeDialog(BuildContext context, DateTime date, String currentClockIn, String currentClockOut) {
+  TimeOfDay? selectedClockIn = currentClockIn != 'Niet ingeklokt' 
+      ? TimeOfDay(hour: int.parse(currentClockIn.split(':')[0]), minute: int.parse(currentClockIn.split(':')[1])) 
+      : null;
+  TimeOfDay? selectedClockOut = currentClockOut != 'Niet uitgeklokt' 
+      ? TimeOfDay(hour: int.parse(currentClockOut.split(':')[0]), minute: int.parse(currentClockOut.split(':')[1])) 
+      : null;
+  TextEditingController locationController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Bewerk Clock-in Sessie',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Datum: ${DateFormat('dd/MM/yyyy').format(date)}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
+                _buildTimeSelector(context, 'Clock-in Tijd', selectedClockIn, (newTime) {
+                  setModalState(() => selectedClockIn = newTime);
+                }),
+                SizedBox(height: 20),
+                _buildTimeSelector(context, 'Clock-out Tijd', selectedClockOut, (newTime) {
+                  setModalState(() => selectedClockOut = newTime);
+                }),
+                SizedBox(height: 20),
+                TextField(
+                  controller: locationController,
+                  decoration: InputDecoration(
+                    labelText: 'Locatie',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: notesController,
+                  decoration: InputDecoration(
+                    labelText: 'Notities',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: Text('Annuleren'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    ElevatedButton(
+                      child: Text('Opslaan'),
+                      onPressed: () {
+                        // Implementeer hier de logica om de gewijzigde gegevens op te slaan
+                        // Gebruik de waarden van selectedClockIn, selectedClockOut, locationController.text, en notesController.text
+                        Navigator.of(context).pop();
+                        // Roep _loadEvents() aan om de kalender bij te werken
+                        _loadEvents();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _buildTimeSelector(BuildContext context, String label, TimeOfDay? initialTime, Function(TimeOfDay) onChanged) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      SizedBox(height: 10),
+      InkWell(
+        onTap: () async {
+          final TimeOfDay? picked = await showTimePicker(
+            context: context,
+            initialTime: initialTime ?? TimeOfDay(hour: 9, minute: 0),
+          );
+          if (picked != null) {
+            onChanged(picked);
+          }
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(initialTime?.format(context) ?? 'Selecteer tijd'),
+              Icon(Icons.access_time),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildWheelPicker({
+  required List<String> items,
+  required int initialItem,
+  required Function(int) onChanged,
+}) {
+  return Container(
+    height: 100,
+    width: 50,
+    child: ListWheelScrollView(
+      itemExtent: 40,
+      diameterRatio: 1.5,
+      useMagnifier: true,
+      magnification: 1.3,
+      onSelectedItemChanged: onChanged,
+      children: items.map((item) => Center(child: Text(item, style: TextStyle(fontSize: 20)))).toList(),
+      controller: FixedExtentScrollController(initialItem: initialItem),
+    ),
+  );
+}
+
   void _viewEventDetails(CalendarEventData event) {
+    // Don't show status for weekends
+    if (event.date.weekday == DateTime.saturday || event.date.weekday == DateTime.sunday) {
+      return;
+    }
+
+    // Don't show status for future dates (except today)
+    DateTime now = DateTime.now();
+    if (event.date.isAfter(now) && DateFormat('yyyy-MM-dd').format(event.date) != DateFormat('yyyy-MM-dd').format(now)) {
+      return;
+    }
+
+    String formattedDate = DateFormat('dd-MM-yyyy').format(event.date);
+    List<String> events = event.description?.split('\n') ?? [];
+    
+    // Format clock events
+    String clockInTime = 'Niet ingeklokt';
+    String clockOutTime = 'Niet uitgeklokt';
+    
+    for (String event in events) {
+      if (event.startsWith('Ingeklokt:')) {
+        clockInTime = DateFormat('HH:mm').format(_extractDateFromTimeStamp(event));
+      } else if (event.startsWith('Uitgeklokt:')) {
+        clockOutTime = DateFormat('HH:mm').format(_extractDateFromTimeStamp(event));
+      }
+    }
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(event.title),
-          content: Text('Begintijd: ${DateFormat('yyyy-MM-dd HH:mm').format(event.startTime!)}\nEindtijd: ${DateFormat('yyyy-MM-dd HH:mm').format(event.endTime!)}'),
+          title: Text(
+            formattedDate,
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ingeklokt: $clockInTime'),
+              SizedBox(height: 8),
+              Text('Uitgeklokt: $clockOutTime'),
+            ],
+          ),
           actions: [
-            TextButton(
-              child: Text('Sluiten'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  child: Text('Sluiten'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton.icon(
+                  icon: Icon(Icons.edit),
+                  label: Text('Bewerken'),
+                  onPressed: () {
+                    // Close current dialog and open edit dialog
+                    Navigator.of(context).pop();
+                    _editTimeDialog(context, event.date, clockInTime, clockOutTime);
+                  },
+                ),
+              ],
             ),
           ],
         );
