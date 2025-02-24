@@ -6,10 +6,22 @@ import '/screens/clock_in_screen.dart';
 import '/screens/location_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-void main() {
+// Background notification service
+void startBackgroundService() async {
+  final prefs = await SharedPreferences.getInstance();
+  final bool? isClockedIn = prefs.getBool('isClockedIn');
+  
+  if (isClockedIn == true) {
+    // Als de app wordt opgestart en we waren ingeklokt, start de notificatie updates
+    ClockInScreen.instance?.startNotificationUpdates();
+  }
+}
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
@@ -21,30 +33,33 @@ void main() {
     requestBadgePermission: true,
     requestAlertPermission: true,
     onDidReceiveLocalNotification: (id, title, body, payload) async {
-      print("Received iOs Notification: $title, $body");
+      print("Received iOS Notification: $title, $body");
     },
   );
-
-  
 
   final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid, 
     iOS: iosSettings
-    
   );
-  
 
-  flutterLocalNotificationsPlugin.initialize(
+  // Configureer de notification action
+  await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-      if (notificationResponse.payload == 'CLOCK_OUT') {
+      print('Received notification response: ${notificationResponse.actionId}, ${notificationResponse.payload}');
+      
+      // Check zowel actionId als payload
+      if (notificationResponse.actionId == 'CLOCK_OUT' || notificationResponse.payload == 'CLOCK_OUT') {
         print('Clock out via notification');
-        // Handle clock out action here
+        if (ClockInScreen.instance != null) {
+          await ClockInScreen.instance!.handleClockOut();
+        }
       }
     },
   );
 
-  
+  // Start de background service
+  startBackgroundService();
 
   final AndroidNotificationChannel channel = AndroidNotificationChannel(
     'your_channel_id',

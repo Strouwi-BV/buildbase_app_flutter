@@ -12,8 +12,14 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
 
+  static _ClockInScreenState? instance;
+
   @override
-  State<ClockInScreen> createState() => _ClockInScreenState();
+  State<ClockInScreen> createState() {
+    final state = _ClockInScreenState();
+    instance = state;
+    return state;
+  }
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
@@ -51,11 +57,16 @@ class _ClockInScreenState extends State<ClockInScreen> {
       isClockedIn = prefs.getBool('isClockedIn') ?? false;
 
       if (isClockedIn) {
-        int clockInTimestamp = prefs.getInt('clockInTimestamp') ?? DateTime.now().millisecondsSinceEpoch;
-        int elapsed = DateTime.now().millisecondsSinceEpoch - clockInTimestamp;
-
-        _stopWatchTimer.onStartTimer();
-        _scheduleNotificationUpdates();
+        // Haal de opgeslagen starttijd op
+        int? startTime = prefs.getInt('clockInTimestamp');
+        if (startTime != null) {
+          // Bereken hoeveel tijd er is verstreken sinds het inklokken
+          int elapsedTime = DateTime.now().millisecondsSinceEpoch - startTime;
+          // Start de timer met de verstreken tijd
+          _stopWatchTimer.setPresetTime(mSec: elapsedTime);
+          _stopWatchTimer.onStartTimer();
+          _scheduleNotificationUpdates();
+        }
       }
     });
   }
@@ -73,39 +84,45 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   void _clockIn() {
+    final startTime = DateTime.now().millisecondsSinceEpoch;
     setState(() {
       isClockedIn = true;
       _stopWatchTimer.onStartTimer();
-      _saveTimerState();
+      _saveTimerState(startTime);
       String timeStamp = 'Ingeklokt: ${_formatDateTime(DateTime.now())}';
       timeStamps.add(timeStamp);
       _saveTimeStamps();
     });
 
     _scheduleNotificationUpdates();
-    // String timeStamp = 'Ingeklokt: ${_formatDateTime(DateTime.now())}';
-    // timeStamps.add(timeStamp);
-    // _saveTimeStamps();
   }
 
-  Future<void> _saveTimerState() async {
+  Future<void> _saveTimerState([int? startTime]) async {
     final prefs = await SharedPreferences.getInstance();
 
-    if (_selectedKlantnaam != null ) {
+    if (_selectedKlantnaam != null) {
       await prefs.setString('selectedKlantnaam', _selectedKlantnaam!);
     }
-    if (_selectedProjectnaam != null ) {
+    if (_selectedProjectnaam != null) {
       await prefs.setString('selectedProjectnaam', _selectedProjectnaam!);
     }
 
     await prefs.setBool('isClockedIn', isClockedIn);
 
-    if (isClockedIn) {
-      await prefs.setInt('clockInTimestamp', DateTime.now().millisecondsSinceEpoch);
+    // Sla de starttijd alleen op bij het inklokken
+    if (isClockedIn && startTime != null) {
+      await prefs.setInt('clockInTimestamp', startTime);
+    } else if (!isClockedIn) {
+      // Verwijder de timestamp bij uitklokken
+      await prefs.remove('clockInTimestamp');
     }
   }
 
-  void _clockOut() async {
+  Future<void> handleClockOut() async {
+    await _clockOut();
+  }
+
+  Future<void> _clockOut() async {
     setState(() {
       isClockedIn = false;
       _stopWatchTimer.onStopTimer();
@@ -113,7 +130,6 @@ class _ClockInScreenState extends State<ClockInScreen> {
       String timeStamp = 'Uitgeklokt: ${_formatDateTime(DateTime.now())}';
       timeStamps.add(timeStamp);
       _saveTimeStamps();
-      
     });
 
     _notificationTimer?.cancel();
@@ -121,31 +137,29 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isClockedIn', false);
+    await prefs.remove('clockInTimestamp');
+  }
+
+  void startNotificationUpdates() {
+    _scheduleNotificationUpdates();
   }
 
   void _scheduleNotificationUpdates() {
-    // _stopWatchTimer.rawTime.listen((value) {
-    //   _showNotification(value);
-    // });
-    // _stopWatchTimer.rawTime.listen((value) {
-    //   if (isClockedIn) {
-    //     _showNotification(value);
-    //   }
-    // });
-    // Timer.periodic(const Duration(seconds: 10), (timer) {
-    //   if (!isClockedIn) {
-    //     timer.cancel();
-    //   } else {
-    //     _showNotification(_stopWatchTimer.rawTime.value);
-    //   }
-    // });
+    _notificationTimer?.cancel();
     _notificationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!isClockedIn) {
-        timer.cancel();
-      } else {
-        final int currentTime = _stopWatchTimer.rawTime.value;
-        print("Updating notification with time: $currentTime");
-        _showNotification(currentTime);
+      _updateNotificationWithCurrentTime();
+    });
+  }
+
+  void _updateNotificationWithCurrentTime() {
+    if (!isClockedIn) return;
+
+    final prefs = SharedPreferences.getInstance();
+    prefs.then((prefs) {
+      final startTime = prefs.getInt('clockInTimestamp');
+      if (startTime != null) {
+        final elapsedTime = DateTime.now().millisecondsSinceEpoch - startTime;
+        _showNotification(elapsedTime);
       }
     });
   }
@@ -156,7 +170,6 @@ class _ClockInScreenState extends State<ClockInScreen> {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      
     );
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -168,15 +181,19 @@ class _ClockInScreenState extends State<ClockInScreen> {
       priority: Priority.high,
       ongoing: true,
       actions: <AndroidNotificationAction>[
-        AndroidNotificationAction('CLOCK_OUT', 'Uitklokken'),
+        AndroidNotificationAction(
+          'CLOCK_OUT',
+          'Uitklokken',
+          showsUserInterface: true,
+          cancelNotification: false,
+        ),
       ],
-      // timeoutAfter: 5000,
     );
-    final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(
-          android: androidPlatformChannelSpecifics,
-          iOS: iOSPlatformChannelSpecifics,
-        );
+
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
 
     await flutterLocalNotificationsPlugin.show(
       0,
@@ -199,9 +216,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
     final int hours = rawTime ~/ 3600000;
     final int minutes = (rawTime % 3600000) ~/ 60000;
     final int seconds = (rawTime % 60000) ~/ 1000;
-    return '${hours.toString().padLeft(2, '0')}:'
-           '${minutes.toString().padLeft(2, '0')}:'
-           '${seconds.toString().padLeft(2, '0')}';
+
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   void _submitRegistration() {
@@ -338,7 +354,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
             ElevatedButton.icon(
               onPressed: () {
                 if (isClockedIn) {
-                  _clockOut();
+                  handleClockOut();
                 } else {
                   _clockIn();
                 }
