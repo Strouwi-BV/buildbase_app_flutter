@@ -1,18 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_poc_reloaded/screens/EditClockInScreen.dart';
+import 'package:flutter_poc_reloaded/screens/event_details_screen.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/location_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-void main() {
+// Background notification service
+void startBackgroundService() async {
+  final prefs = await SharedPreferences.getInstance();
+  final bool? isClockedIn = prefs.getBool('isClockedIn');
+  
+  if (isClockedIn == true) {
+    // Als de app wordt opgestart en we waren ingeklokt, start de notificatie updates
+    ClockInScreen.instance?.startNotificationUpdates();
+  }
+}
 
-  // var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
   final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
     '@mipmap/ic_launcher'
@@ -23,30 +37,36 @@ void main() {
     requestBadgePermission: true,
     requestAlertPermission: true,
     onDidReceiveLocalNotification: (id, title, body, payload) async {
-      print("Received iOs Notification: $title, $body");
+      print("Received iOS Notification: $title, $body");
     },
   );
-
-  
 
   final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid, 
     iOS: iosSettings
-    
   );
-  
 
-  flutterLocalNotificationsPlugin.initialize(
+  // Configureer de notification action
+  await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-      if (notificationResponse.payload == 'CLOCK_OUT') {
+      print('Received notification response: ${notificationResponse.actionId}, ${notificationResponse.payload}');
+      
+      if (notificationResponse.actionId == 'CLOCK_OUT' || notificationResponse.payload == 'CLOCK_OUT') {
+        // Uitklok actie
         print('Clock out via notification');
-        // Handle clock out action here
+        if (ClockInScreen.instance != null) {
+          await ClockInScreen.instance!.handleClockOut();
+        }
+      } else {
+        // Normale tap op notificatie
+        _router.go('/clock-in');
       }
     },
   );
 
-  
+  // Start de background service
+  startBackgroundService();
 
   final AndroidNotificationChannel channel = AndroidNotificationChannel(
     'your_channel_id',
@@ -94,6 +114,31 @@ final GoRouter _router = GoRouter(
       builder: (context, state) {
         final String? data = state.extra as String?;
         return CalendarScreen(data: data ?? "No data here");
+      },
+    ),
+    GoRoute(
+      path: '/edit-clock-in',
+      builder: (context, state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return EditClockInScreen(
+          date: extra['date'] as DateTime,
+          currentClockIn: extra['clockInTime'] as String,
+          currentClockOut: extra['clockOutTime'] as String,
+          currentNotes: extra['notes'] as String,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/event-details',
+      builder: (context, state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return EventDetailsScreen(
+          formattedDate: extra['formattedDate'] as String,
+          clockInTime: extra['clockInTime'] as String,
+          clockOutTime: extra['clockOutTime'] as String,
+          noteText: extra['notes'] as String,
+          onEditPressed: extra['onEditPressed'] as Function,
+        );
       },
     ),
     GoRoute(
