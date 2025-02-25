@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_poc_reloaded/screens/EditClockInScreen.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
@@ -7,6 +8,7 @@ import '/screens/location_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -110,6 +112,17 @@ final GoRouter _router = GoRouter(
         return CalendarScreen(data: data ?? "No data here");
       },
     ),
+    GoRoute(
+  path: '/edit-clock-in',
+  builder: (context, state) {
+    final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+    return EditClockInScreen(
+      date: extra['date'],
+      currentClockIn: extra['clockInTime'],
+      currentClockOut: extra['clockOutTime'],
+    );
+  },
+),
     GoRoute(
       path: '/clock-in',
       builder: (context, state) {

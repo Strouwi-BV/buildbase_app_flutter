@@ -68,7 +68,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: '', // Empty title as requested
         startTime: date,
         endTime: date.add(Duration(hours: 24)),
-        color: hasClockIn ? Colors.green.withOpacity(0.7) : Colors.red.withOpacity(0.7),
+        color: hasClockIn ? Colors.green.withOpacity(0.7) : const Color.fromARGB(255, 231, 57, 44).withOpacity(0.7),
         description: events.join('\n'), // Store all events for this day
       );
       _eventController.add(eventData);
@@ -196,131 +196,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
- void _editTimeDialog(BuildContext context, DateTime date, String currentClockIn, String currentClockOut) {
-  TimeOfDay? selectedClockIn = currentClockIn != 'Niet ingeklokt' 
-      ? TimeOfDay(hour: int.parse(currentClockIn.split(':')[0]), minute: int.parse(currentClockIn.split(':')[1])) 
-      : null;
-  TimeOfDay? selectedClockOut = currentClockOut != 'Niet uitgeklokt' 
-      ? TimeOfDay(hour: int.parse(currentClockOut.split(':')[0]), minute: int.parse(currentClockOut.split(':')[1])) 
-      : null;
-  TextEditingController locationController = TextEditingController();
-  TextEditingController notesController = TextEditingController();
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
-          return SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 16,
-              right: 16,
-              top: 16,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Bewerk Clock-in Sessie',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Datum: ${DateFormat('dd/MM/yyyy').format(date)}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                _buildTimeSelector(context, 'Clock-in Tijd', selectedClockIn, (newTime) {
-                  setModalState(() => selectedClockIn = newTime);
-                }),
-                SizedBox(height: 20),
-                _buildTimeSelector(context, 'Clock-out Tijd', selectedClockOut, (newTime) {
-                  setModalState(() => selectedClockOut = newTime);
-                }),
-                SizedBox(height: 20),
-                TextField(
-                  controller: locationController,
-                  decoration: InputDecoration(
-                    labelText: 'Locatie',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: notesController,
-                  decoration: InputDecoration(
-                    labelText: 'Notities',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      child: Text('Annuleren'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    ElevatedButton(
-                      child: Text('Opslaan'),
-                      onPressed: () {
-                        // Implementeer hier de logica om de gewijzigde gegevens op te slaan
-                        // Gebruik de waarden van selectedClockIn, selectedClockOut, locationController.text, en notesController.text
-                        Navigator.of(context).pop();
-                        // Roep _loadEvents() aan om de kalender bij te werken
-                        _loadEvents();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-Widget _buildTimeSelector(BuildContext context, String label, TimeOfDay? initialTime, Function(TimeOfDay) onChanged) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      SizedBox(height: 10),
-      InkWell(
-        onTap: () async {
-          final TimeOfDay? picked = await showTimePicker(
-            context: context,
-            initialTime: initialTime ?? TimeOfDay(hour: 9, minute: 0),
-          );
-          if (picked != null) {
-            onChanged(picked);
-          }
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(initialTime?.format(context) ?? 'Selecteer tijd'),
-              Icon(Icons.access_time),
-            ],
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
+ 
 Widget _buildWheelPicker({
   required List<String> items,
   required int initialItem,
@@ -387,22 +263,29 @@ Widget _buildWheelPicker({
             ],
           ),
           actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  child: Text('Sluiten'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+         style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xff13263B),
+        foregroundColor: Colors.white,
+          ),
+       child: Text('Annuleren'),
+       onPressed: () => Navigator.of(context).pop(),
+        ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff13263B),
+                  foregroundColor: Colors.white,
                 ),
-                TextButton.icon(
-                  icon: Icon(Icons.edit),
-                  label: Text('Bewerken'),
-                  onPressed: () {
-                    // Close current dialog and open edit dialog
-                    Navigator.of(context).pop();
-                    _editTimeDialog(context, event.date, clockInTime, clockOutTime);
+                child: Text('Bewerk'),
+                onPressed: () {
+                  context.push('/edit-clock-in', extra: {
+                    'date': event.date,
+                    'clockInTime': clockInTime,
+                    'clockOutTime': clockOutTime,
+                  });
                   },
                 ),
               ],
@@ -412,6 +295,8 @@ Widget _buildWheelPicker({
       },
     );
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
