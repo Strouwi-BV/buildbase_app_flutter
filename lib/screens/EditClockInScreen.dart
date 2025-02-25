@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 
 class EditClockInScreen extends StatefulWidget {
   final DateTime date;
   final String currentClockIn;
   final String currentClockOut;
+  final String currentNotes;
 
   EditClockInScreen({
     required this.date,
     required this.currentClockIn,
     required this.currentClockOut,
+    required this.currentNotes,
   });
 
   @override
@@ -19,7 +23,7 @@ class EditClockInScreen extends StatefulWidget {
 class _EditClockInScreenState extends State<EditClockInScreen> {
   TimeOfDay? _selectedClockInTime;
   TimeOfDay? _selectedClockOutTime;
-  String _notities = '';
+  late TextEditingController _notesController;
 
   @override
   void initState() {
@@ -36,22 +40,55 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
             minute: int.parse(widget.currentClockOut.split(':')[1]),
           )
         : null;
+    _notesController = TextEditingController(text: widget.currentNotes);
   }
 
-  void _saveClockInOut() {
-    // Voorbeeldfunctie om de klok-in en klok-uit tijden op te slaan
-    final clockInTime = _selectedClockInTime != null
-        ? '${_selectedClockInTime!.hour}:${_selectedClockInTime!.minute}'
-        : 'Niet ingeklokt';
-    final clockOutTime = _selectedClockOutTime != null
-        ? '${_selectedClockOutTime!.hour}:${_selectedClockOutTime!.minute}'
-        : 'Niet uitgeklokt';
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
-    print('Opgeslagen klok-in tijd: $clockInTime');
-    print('Opgeslagen klok-uit tijd: $clockOutTime');
-    print('Notities: $_notities');
+  String _formatDate(DateTime date, TimeOfDay? time) {
+    if (time == null) {
+      return 'Niet ingegeven';
+    }
+    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+  }
 
-    // Hier kunt u de logica implementeren om deze gegevens op te slaan in uw kalender of database
+  void _saveClockInOut() async {
+    // Sla de klok-in en klok-uit tijden en de notities op in shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(widget.date);
+    String clockInTimeStamp = _formatDate(widget.date, _selectedClockInTime);
+    String clockOutTimeStamp = _formatDate(widget.date, _selectedClockOutTime);
+    String noteText = _notesController.text;
+
+    List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
+    timeStamps.removeWhere((timeStamp) => timeStamp.contains(formattedDate));
+
+    if (clockInTimeStamp != 'Niet ingegeven') {
+      timeStamps.add('Ingeklokt: $clockInTimeStamp');
+    }
+    if (clockOutTimeStamp != 'Niet ingegeven') {
+      timeStamps.add('Uitgeklokt: $clockOutTimeStamp');
+    }
+
+    if (noteText.isNotEmpty) {
+      // Als er notities zijn, voeg ze toe
+        timeStamps.add('Notities: $formattedDate - $noteText');
+
+    }
+    else {
+        // Als er geen notities zijn, zorg ervoor dat er geen oude notities blijven staan
+        timeStamps.removeWhere((timeStamp) => timeStamp.contains('Notities: $formattedDate'));
+    }
+
+    await prefs.setStringList('timeStamps', timeStamps);
+    // Geef de bijgewerkte tijden terug aan de CalendarScreen
+    context.pop(true);
+    context.pop();
   }
 
   @override
@@ -83,7 +120,7 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
                     Text('Ingeklokt:'),
                     SizedBox(width: 16),
                     Text(_selectedClockInTime != null
-                        ? '${_selectedClockInTime!.hour}:${_selectedClockInTime!.minute}'
+                        ? '${_selectedClockInTime!.hour.toString().padLeft(2, '0')}:${_selectedClockInTime!.minute.toString().padLeft(2, '0')}'
                         : 'Niet ingeklokt'),
                     SizedBox(width: 8),
                     IconButton(
@@ -108,7 +145,7 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
                     Text('Uitgeklokt:'),
                     SizedBox(width: 16),
                     Text(_selectedClockOutTime != null
-                        ? '${_selectedClockOutTime!.hour}:${_selectedClockOutTime!.minute}'
+                        ? '${_selectedClockOutTime!.hour.toString().padLeft(2, '0')}:${_selectedClockOutTime!.minute.toString().padLeft(2, '0')}'
                         : 'Niet uitgeklokt'),
                     SizedBox(width: 8),
                     IconButton(
@@ -131,16 +168,12 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
             ),
             SizedBox(height: 16),
             TextField(
+              controller: _notesController,
               decoration: InputDecoration(
                 labelText: 'Notities',
                 border: OutlineInputBorder(),
               ),
               maxLines: 5, // Maak er een box veld van
-              onChanged: (value) {
-                setState(() {
-                  _notities = value;
-                });
-              },
             ),
             SizedBox(height: 16),
             ElevatedButton(
@@ -151,7 +184,6 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
               child: Text('Opslaan'),
               onPressed: () {
                 _saveClockInOut();
-                Navigator.of(context).pop();
               },
             ),
           ],

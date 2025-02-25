@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_poc_reloaded/screens/EditClockInScreen.dart';
+import 'package:flutter_poc_reloaded/screens/event_details_screen.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
@@ -113,16 +114,30 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
-  path: '/edit-clock-in',
-  builder: (context, state) {
-    final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
-    return EditClockInScreen(
-      date: extra['date'],
-      currentClockIn: extra['clockInTime'],
-      currentClockOut: extra['clockOutTime'],
-    );
-  },
-),
+      path: '/edit-clock-in',
+      builder: (context, state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return EditClockInScreen(
+          date: extra['date'] as DateTime,
+          currentClockIn: extra['clockInTime'] as String,
+          currentClockOut: extra['clockOutTime'] as String,
+          currentNotes: extra['notes'] as String,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/event-details',
+      builder: (context, state) {
+        final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+        return EventDetailsScreen(
+          formattedDate: extra['formattedDate'] as String,
+          clockInTime: extra['clockInTime'] as String,
+          clockOutTime: extra['clockOutTime'] as String,
+          noteText: extra['notes'] as String,
+          onEditPressed: extra['onEditPressed'] as Function,
+        );
+      },
+    ),
     GoRoute(
       path: '/clock-in',
       builder: (context, state) {
