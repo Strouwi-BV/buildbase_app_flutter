@@ -93,14 +93,6 @@ class NavigationDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.location_on),
-          title: const Text('Location'),
-          onTap: () {
-            Navigator.pop(context);
-            context.go('/location/37.7749/-122.4194');
-          },
-        ),
-        ListTile(
           leading: const Icon(Icons.calendar_today_sharp),
           title: const Text('Calendar'),
           onTap: () {
