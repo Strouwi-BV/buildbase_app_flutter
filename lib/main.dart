@@ -12,8 +12,8 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 
 void main() {
 
-  // var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-
+  WidgetsFlutterBinding.ensureInitialized();
+  
   final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
     '@mipmap/ic_launcher'
   );
@@ -61,7 +61,6 @@ void main() {
 
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  WidgetsFlutterBinding.ensureInitialized();
 
   _requestiOSPermissons();
 

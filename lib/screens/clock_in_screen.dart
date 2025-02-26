@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_poc_reloaded/api/api_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +27,12 @@ class _ClockInScreenState extends State<ClockInScreen> {
   String? _selectedProjectnaam;
   final List<String> _klantnamen = ['Strouwi', 'Klant B', 'Klant C'];
   final List<String> _projectnamen = ['Buildbase app', 'Project X', 'Project Y'];
+
+  //Added DevAPI
+  int? selectedClientId;
+  int? selectedProjectId;
+  bool _isClockedIn = false;
+
 
   Timer? _notificationTimer;
 
@@ -83,9 +90,28 @@ class _ClockInScreenState extends State<ClockInScreen> {
     });
 
     _scheduleNotificationUpdates();
-    // String timeStamp = 'Ingeklokt: ${_formatDateTime(DateTime.now())}';
-    // timeStamps.add(timeStamp);
-    // _saveTimeStamps();
+  //Start DevAPI
+  // Future<void> checkClockingStatus() async {
+  //   var status = await ApiSerive.getClockingStatus(userId);
+  //   if (status != null) {
+  //     setState(() {
+  //       _isClockedIn = status['isClockedIn'];
+  //       selectedClientId = status['client']?['id'];
+  //       selectedProjectId = status['project']?['id'];
+  //     });
+  //   }
+  // }
+
+  // Future<void> toggleClocking() async {
+  //   bool success = await ApiSerive.clockInOrOut(userId, selectedClientId!, selectedProjectId!);
+  //   if (success) {
+  //     checkClockingStatus();
+  //   }
+  // }
+
+  //End DevAPI
+
+  
   }
 
   Future<void> _saveTimerState() async {
