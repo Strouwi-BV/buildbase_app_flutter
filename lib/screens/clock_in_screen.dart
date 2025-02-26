@@ -6,8 +6,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart' as custom_widgets;
 import 'dart:async';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
@@ -23,7 +26,8 @@ class ClockInScreen extends StatefulWidget {
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
-  final StopWatchTimer _stopWatchTimer = StopWatchTimer(mode: StopWatchMode.countUp);
+  final StopWatchTimer _stopWatchTimer =
+      StopWatchTimer(mode: StopWatchMode.countUp);
   bool isClockedIn = false;
   List<String> timeStamps = [];
   final _formKey = GlobalKey<FormState>();
@@ -34,6 +38,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   final List<String> _projectnamen = ['Buildbase app', 'Project X', 'Project Y'];
   bool _needsRegistration = false;
   bool _showTimer = true;
+  String _currentLocation = '';
 
   Timer? _notificationTimer;
 
@@ -57,7 +62,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       _selectedKlantnaam = prefs.getString('selectedKlantnaam');
       _selectedProjectnaam = prefs.getString('selectedProjectnaam');
       isClockedIn = prefs.getBool('isClockedIn') ?? false;
-      
+
       // Als we niet ingeklokt zijn en van scherm wisselen, dan registratie tonen
       _showTimer = isClockedIn;
 
@@ -85,24 +90,69 @@ class _ClockInScreenState extends State<ClockInScreen> {
     super.dispose();
   }
 
-  void _clockIn() {
+  Future<void> _clockIn() async {
     // Als er geen project/klant is geselecteerd, dan kan er niet ingeklokt worden
     if (_selectedKlantnaam == null || _selectedProjectnaam == null) {
       return;
     }
+    try {
+      String location = await _getCurrentLocation(); // Haal de locatie op
+      final startTime = DateTime.now().millisecondsSinceEpoch;
+      setState(() {
+        isClockedIn = true;
+        _showTimer = true; // Na inklokken altijd timer tonen
+        _stopWatchTimer.onStartTimer();
+        _saveTimerState(startTime);
+        String timeStamp =
+            'Ingeklokt: ${_formatDateTime(DateTime.now())}';
+        timeStamps.add(timeStamp);
+        _saveTimeStamps();
+        _currentLocation = location;
+      });
+        final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('currentLocation', _currentLocation);
+      _scheduleNotificationUpdates();
+    } catch (e) {
+      print('Error getting location: $e');
+      // Toon een error of fallback naar een default locatie
+    }
+  }
 
-    final startTime = DateTime.now().millisecondsSinceEpoch;
-    setState(() {
-      isClockedIn = true;
-      _showTimer = true;  // Na inklokken altijd timer tonen
-      _stopWatchTimer.onStartTimer();
-      _saveTimerState(startTime);
-      String timeStamp = 'Ingeklokt: ${_formatDateTime(DateTime.now())}';
-      timeStamps.add(timeStamp);
-      _saveTimeStamps();
-    });
+  Future<String> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
-    _scheduleNotificationUpdates();
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return 'Locatie diensten zijn uitgeschakeld.';
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return 'Locatie toestemming is geweigerd.';
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return 'Locatie toestemming is permanent geweigerd.';
+    }
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        return "${place.locality}"; // geef de stad terug
+      }
+      return "Locatie niet gevonden";
+    } catch (e) {
+      return "Error: $e";
+    }
   }
 
   Future<void> _saveTimerState([int? startTime]) async {
@@ -134,7 +184,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
       // We blijven de timer tonen na uitklokken
       _stopWatchTimer.onStopTimer();
       _stopWatchTimer.onResetTimer();
-      String timeStamp = 'Uitgeklokt: ${_formatDateTime(DateTime.now())}';
+      String timeStamp =
+          'Uitgeklokt: ${_formatDateTime(DateTime.now())}';
       timeStamps.add(timeStamp);
       _saveTimeStamps();
     });
@@ -172,7 +223,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   void _showNotification(int timerValue) async {
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics = DarwinNotificationDetails (
+    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+        DarwinNotificationDetails(
       categoryIdentifier: 'clock_in_category',
       presentAlert: true,
       presentBadge: true,
@@ -208,7 +260,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       'Clock in',
       'Time Clocked In: ${_formatTime(timerValue)}',
       platformChannelSpecifics,
-      payload: 'SHOW_CLOCK_IN', 
+      payload: 'SHOW_CLOCK_IN',
     );
   }
 
@@ -217,7 +269,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); 
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
   String _formatTime(int rawTime) {
@@ -232,7 +284,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       setState(() {
-        _showTimer = true;  // Toon timer na registratie
+        _showTimer = true; // Toon timer na registratie
         _registrationCompleted = true;
       });
       // Niet meer automatisch inklokken
@@ -298,7 +350,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
                   _selectedKlantnaam = newValue;
                 });
               },
-              validator: (value) => value == null ? 'Selecteer een klantnaam' : null,
+              validator: (value) =>
+                  value == null ? 'Selecteer een klantnaam' : null,
               onSaved: (value) => _selectedKlantnaam = value,
             ),
             const SizedBox(height: 16),
@@ -319,7 +372,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
                   _selectedProjectnaam = newValue;
                 });
               },
-              validator: (value) => value == null ? 'Selecteer een projectnaam' : null,
+              validator: (value) =>
+                  value == null ? 'Selecteer een projectnaam' : null,
               onSaved: (value) => _selectedProjectnaam = value,
             ),
             const SizedBox(height: 24),

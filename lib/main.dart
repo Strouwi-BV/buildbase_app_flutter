@@ -5,19 +5,18 @@ import 'package:flutter_poc_reloaded/screens/event_details_screen.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
-import '/screens/location_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 // Background notification service
 void startBackgroundService() async {
   final prefs = await SharedPreferences.getInstance();
   final bool? isClockedIn = prefs.getBool('isClockedIn');
-  
+
   if (isClockedIn == true) {
     // Als de app wordt opgestart en we waren ingeklokt, start de notificatie updates
     ClockInScreen.instance?.startNotificationUpdates();
@@ -27,9 +26,8 @@ void startBackgroundService() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
-    '@mipmap/ic_launcher'
-  );
+  final AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
   final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
     requestSoundPermission: true,
@@ -41,17 +39,18 @@ void main() async {
   );
 
   final InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid, 
-    iOS: iosSettings
-  );
+      android: initializationSettingsAndroid, iOS: iosSettings);
 
   // Configureer de notification action
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-      print('Received notification response: ${notificationResponse.actionId}, ${notificationResponse.payload}');
-      
-      if (notificationResponse.actionId == 'CLOCK_OUT' || notificationResponse.payload == 'CLOCK_OUT') {
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {
+      print(
+          'Received notification response: ${notificationResponse.actionId}, ${notificationResponse.payload}');
+
+      if (notificationResponse.actionId == 'CLOCK_OUT' ||
+          notificationResponse.payload == 'CLOCK_OUT') {
         // Uitklok actie
         print('Clock out via notification');
         if (ClockInScreen.instance != null) {
@@ -75,7 +74,8 @@ void main() async {
   );
 
   flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,15 +86,14 @@ void main() async {
 }
 
 void _requestiOSPermissons() {
-    flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation
-      <IOSFlutterLocalNotificationsPlugin>()
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
+        alert: true,
+        badge: true,
+        sound: true,
       );
-  }
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -134,6 +133,7 @@ final GoRouter _router = GoRouter(
           clockInTime: extra['clockInTime'] as String,
           clockOutTime: extra['clockOutTime'] as String,
           noteText: extra['notes'] as String,
+          location: extra['location'] as String,
           onEditPressed: extra['onEditPressed'] as Function,
         );
       },
@@ -142,12 +142,6 @@ final GoRouter _router = GoRouter(
       path: '/clock-in',
       builder: (context, state) {
         return ClockInScreen();
-      },
-    ),
-    GoRoute(
-      path: '/location/:latitude/:longitude',
-      builder: (context, state) {
-        return LocationScreen();
       },
     ),
     GoRoute(

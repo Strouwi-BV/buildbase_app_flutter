@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'home_screen.dart' as custom_widgets;
-import 'EditClockInScreen.dart'; // Import aangepast
-import 'event_details_screen.dart';
+import 'package:geocoding/geocoding.dart';
+import '../screens/home_screen.dart' as custom_widgets;
+import '../screens/EditClockInScreen.dart'; // Import aangepast
+import '../screens/event_details_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -320,6 +321,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     String clockInTime = 'Niet ingeklokt';
     String clockOutTime = 'Niet uitgeklokt';
     String noteText = '';
+    String location = '';
 
     List<String> clockInEvents =
         events.where((event) => event.startsWith('Ingeklokt:')).toList();
@@ -349,11 +351,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       clockOutTime = "Niet uitgeklokt";
     }
 
+    location = prefs.getString('currentLocation') ?? "Geen locatie beschikbaar";
+
     context.push('/event-details', extra: {
       'formattedDate': formattedDate,
       'clockInTime': clockInTime,
       'clockOutTime': clockOutTime,
       'notes': noteText,
+      'location': location,
       'onEditPressed': () async {
         final result = await context.push('/edit-clock-in', extra: {
           'date': event.date,

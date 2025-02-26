@@ -7,6 +7,7 @@ class EventDetailsScreen extends StatelessWidget {
   final String clockOutTime;
   final String noteText;
   final Function onEditPressed;
+  final String location;
 
   const EventDetailsScreen({
     Key? key,
@@ -15,6 +16,7 @@ class EventDetailsScreen extends StatelessWidget {
     required this.clockOutTime,
     required this.noteText,
     required this.onEditPressed,
+    required this.location
   }) : super(key: key);
 
   @override
@@ -24,6 +26,10 @@ class EventDetailsScreen extends StatelessWidget {
         title: Text(formattedDate),
         backgroundColor: Color(0xff13263B),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -35,6 +41,8 @@ class EventDetailsScreen extends StatelessWidget {
             Text('Uitgeklokt: $clockOutTime'),
             SizedBox(height: 8),
             Text('Notities: $noteText'),
+            SizedBox(height: 8),
+            Text('Locatie: $location'),
             SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
