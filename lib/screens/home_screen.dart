@@ -125,6 +125,13 @@ class NavigationDrawer extends StatelessWidget {
             Navigator.pop(context);
             context.go('/profile/1');
           },
+        ),ListTile(
+          leading: const Icon(Icons.account_circle),
+          title: const Text('ProfileTesting'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/profile_testing');
+          },
         ),
       ],
     );
