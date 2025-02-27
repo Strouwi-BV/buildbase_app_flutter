@@ -5,6 +5,7 @@ import 'home_screen.dart' as custom_widgets;
 import '../api/api_service.dart';
 import '../service/user_preferences.dart';
 import '../models/user_model.dart';
+import 'edit_profile_screen.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -33,88 +34,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? userProfile;
   bool isLoading = true;
   String userInfo = "No data found";
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    // futureUserModel = ApiSerive().fetchUsers();
-    // loadDetails();
     loadUserData();
   }
-
-  
-  //  void updateUserProfile() async {
-  //    final success = updateUserProfile({
-  //      "name": "Updated Name",
-  //      "age": userProfile?['age'] ?? 25,
-  //    });
-  //   if (_formKey.currentState!.validate()) {
-  //     final success = await ApiSerive.updateUserProfile(widget.userId, {
-  //       "name" : _nameController.text,
-  //       "age" : int.tryParse(_ageController.text) ?? userProfile?['age'] ?? 25,
-  //     });
-  //     if (success) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("Profile updated!")));
-  //       fetchUserProfile();
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("Update failed!")));
-  //     }
-  //   }
-  // }
-  // void saveLocalDetails() async {
-  //   if (_formKey.currentState!.validate()){
-  //     await UserPreferences.saveUserDetails(
-  //       name: _localNameController.text, 
-  //       surname: _surnameController.text, 
-  //       dob: _dobController.text, 
-  //       function: _functionController.text, 
-  //       department: _departmentController.text,
-  //       );
-  //       updateDetails();
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("User details saved successfully!")),
-  //       );
-  //   }
-  // }
-  // void updateDetails(){
-  //   setState(() {
-  //     userInfo = '''
-  //       Name: ${_localNameController.text}
-  //       Surname: ${_surnameController.text}
-  //       Date of Birth: ${_dobController.text}
-  //       Function: ${_functionController.text}
-  //       Department: ${_departmentController.text}
-  //     ''';
-  //   });
-  // }
-  // void loadDetails() async {
-  //   Map<String, String?> userDetails = await UserPreferences.getUserDetails();
-  //   setState(() {
-  //     _localNameController.text = userDetails["name"] ?? "";
-  //     _surnameController.text = userDetails["surname"] ?? "";
-  //     _dobController.text = userDetails["dob"] ?? "";
-  //     _functionController.text = userDetails["function"] ?? "";
-  //     _departmentController.text = userDetails["department"] ?? "";
-  //     updateDetails();
-  //   });
-  // }
-  // void clearDetails() async {
-  //   await UserPreferences.clearUserDetails();
-  //   setState(() {
-  //     _localNameController.clear();
-  //     _surnameController.clear();
-  //     _dobController.clear();
-  //     _functionController.clear();
-  //     _departmentController.clear();
-  //   });
-  //   updateDetails();
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text("User details cleared!")),
-  //   );
-  // }
 
   Future<void> loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -124,6 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       lastName = prefs.getString('selectedLastName') ?? "N/A";
       birthDate = prefs.getString('selectedBirthDate') ?? "N/A";
       nationality = prefs.getString('selectedNationality') ?? "N/A";
+      socialNumber = prefs.getString('selectedSocialNumber') ?? "N/A";
       bankAccount = prefs.getString('selectedBankAccount') ?? "N/A";
       email = prefs.getString('selectedEmail') ?? "N/A";
       workEmail = prefs.getString('selectedWorkEmail') ?? "N/A";
@@ -133,6 +59,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     print("Profile of $firstName $lastName loaded.");
+  }
+
+  void navigateToEditScreen() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditProfileScreen()),
+    );
+    loadUserData();
   }
 
 
@@ -163,6 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              SizedBox(height: 30),
               Text("Name: $firstName $lastName", style: TextStyle(fontSize: 18)),
               Text("Birth Date: $birthDate"),
               Text("Nationality: $nationality"),
@@ -173,29 +108,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text("Phone: $phone"),
               Text("Address: $address"),
               Text("Emergency Contact: $emergencyContact"),
+              SizedBox(height: 20),
+              // Center(
+              //   child: Button,
+              // )
             ],
           ),
-          // child: FutureBuilder<UserModel>(
-          //   future: futureUserModel, 
-          //   builder: (context, snapshot) {
-          //     if (snapshot.connectionState == ConnectionState.waiting) {
-          //       return CircularProgressIndicator();
-          //     } else if (snapshot.hasError) {
-          //       return Text("Error: ${snapshot.error}");
-          //     } else if (snapshot.hasData) {
-          //       UserModel userModel = snapshot.data!;
-          //       return Column (
-          //         mainAxisAlignment: MainAxisAlignment.center,
-          //         children: [
-          //           Text("Name: ${userModel.firstName} ${userModel.lastName}", style: TextStyle(fontSize: 20))
-          //         ],
-          //       );
-          //     } else {
-          //       return Text("No user found");
-          //     }
-          //   },
-          // ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: navigateToEditScreen,
+        child: Icon(Icons.edit),
+      ),
+    );
+  }
+
+  Widget buildProfileRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label, 
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+          ),
+          Text(
+            value,
+            style: TextStyle(fontSize: 16)
+          ),
+        ],
       ),
     );
   }
