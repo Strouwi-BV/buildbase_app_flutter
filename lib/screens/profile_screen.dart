@@ -147,6 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: const Color(0xff13263B),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
           if (details.primaryVelocity! > 0) {
@@ -154,114 +155,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
         },
         child: Center(
-          child: isLoading
-              ? CircularProgressIndicator()
-              : userProfile == null
-                  ? const Text("Failed to load profile")
-                  : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "User Details",
-                            style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            padding: EdgeInsets.all(12),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              userInfo,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          SizedBox(height: 20),                          // const Text("Update Profile", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          // const SizedBox(height: 10),
-                          // TextFormField(
-                          //   controller: _nameController,
-                          //   decoration: const InputDecoration(
-                          //     labelText: "Name",
-                          //     border: UnderlineInputBorder(),
-                          //   ),
-                          //   validator: (value) {
-                          //     if (value == null || value.isEmpty) {
-                          //       return "Please enter a name";
-                          //     }
-                          //     return null;
-                          //   },
-                          // ),
-                          // const SizedBox(height: 10),
-                          // TextFormField(
-                          //   controller: _ageController,
-                          //   decoration: const InputDecoration(
-                          //     labelText: "Age",
-                          //     border: UnderlineInputBorder(),
-                          //   ),
-                          //   keyboardType: TextInputType.number,
-                          //   validator: (value) {
-                          //     if (value == null || value.isEmpty) {
-                          //       return "Please enter a valid age";
-                          //     }
-                          //     if (int.tryParse(value) == null) {
-                          //       return "Please enter your age in valid numbers";
-                          //     }
-                          //     return null;
-                          //   },
-                          // ),
-                          // const SizedBox(height: 20),
-                          // Center(
-                          //   child: ElevatedButton(
-                          //     onPressed: updateUserProfile, 
-                          //     child: const Text("Update Profile"),
-                          //   ),
-                          // ),
-                          TextFormField(
-                            controller: _localNameController,
-                            decoration: InputDecoration(labelText: "Name"),
-                            validator: (value) => value!.isEmpty ? "Please enter your name" : null,
-                          ),
-                          TextFormField(
-                            controller: _surnameController,
-                            decoration: InputDecoration(labelText: "Surname"),
-                            validator: (value) => value!.isEmpty ? "Please enter your surname" : null,
-                          ),
-                          TextFormField(
-                            controller: _dobController,
-                            decoration: InputDecoration(labelText: "Date Of Birth"),
-                            validator: (value) => value!.isEmpty ? "Please enter your date of birth" : null,
-                          ),
-                          TextFormField(
-                            controller: _functionController,
-                            decoration: InputDecoration(labelText: "Function"),
-                            validator: (value) => value!.isEmpty ? "Please enter your funtion" : null,
-                          ),
-                          TextFormField(
-                            controller: _departmentController,
-                            decoration: InputDecoration(labelText: "Department"),
-                          ),
-                          SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: saveLocalDetails,
-                            child: Text("Save"),
-                          ),
-                          ElevatedButton(
-                            onPressed: clearDetails,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                            child: Text("Clear Data"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 20),
+              Text("Name: $firstName $lastName", style: TextStyle(fontSize: 18)),
+              Text("Birth Date: $birthDate"),
+              Text("Nationality: $nationality"),
+              Text("Social Number: $socialNumber"),
+              Text("Bank Account: $bankAccount"),
+              Text("Email: $email"),
+              Text("Work Email: $workEmail"),
+              Text("Phone: $phone"),
+              Text("Address: $address"),
+              Text("Emergency Contact: $emergencyContact"),
+            ],
+          ),
+          // child: FutureBuilder<UserModel>(
+          //   future: futureUserModel, 
+          //   builder: (context, snapshot) {
+          //     if (snapshot.connectionState == ConnectionState.waiting) {
+          //       return CircularProgressIndicator();
+          //     } else if (snapshot.hasError) {
+          //       return Text("Error: ${snapshot.error}");
+          //     } else if (snapshot.hasData) {
+          //       UserModel userModel = snapshot.data!;
+          //       return Column (
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Text("Name: ${userModel.firstName} ${userModel.lastName}", style: TextStyle(fontSize: 20))
+          //         ],
+          //       );
+          //     } else {
+          //       return Text("No user found");
+          //     }
+          //   },
+          // ),
         ),
       ),
     );
