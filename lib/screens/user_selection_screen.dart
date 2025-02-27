@@ -23,14 +23,21 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
   }
 
   Future<void> fetchUsers() async {
-    try {
-      List<UserModel> fetchedUsers = await apiService.fetchUsers();
-      setState(() {
-        users = fetchedUsers;
-      });
-    } catch (e) {
-      print("Error fetching users: $e");
-    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // if (prefs.getInt() == null){
+
+      try {
+        List<UserModel> fetchedUsers = await apiService.fetchUsers();
+        setState(() {
+          users = fetchedUsers;
+        });
+      } catch (e) {
+        print("Error fetching users: $e");
+      }
+    // } else {
+    //   getSelectedUser();
+    // }
+    
   }
 
   Future<void> saveSelectedUserToPrefs(UserModel user) async {
@@ -59,7 +66,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     int? userId = prefs.getInt('selectedUserId');
-    String? userName = prefs.getString('selectedUsername');
+    // String? userName = prefs.getString('selectedUsername');
     String? firstName = prefs.getString('selectedFirstName');
     String? lastName = prefs.getString('selectedLastName');
     String? birthDate = prefs.getString('selectedBirthDate');
@@ -73,23 +80,25 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
     String? emergencyContact = prefs.getString('selectedEmergencyContact');
     
 
-    if (userId != null && userName != null) {
+    if (userId != null) {
       setState(() {
         UserModel(
           id: userId,
-          firstName: firstName.toString(),
-          lastName: lastName.toString(),
-          birthDate: birthDate.toString(),
-          nationality: nationality.toString(),
-          socialNumber: socialNumber.toString(),
-          bankAccount: bankAccount.toString(),
-          email: email.toString(),
-          workEmail: workEmail.toString(),
-          phone: phone.toString(),
-          address: address.toString(),
-          emergencyContact: emergencyContact.toString(),
+          firstName: firstName ?? '',
+          lastName: lastName ?? '',
+          birthDate: birthDate ?? '',
+          nationality: nationality ?? '',
+          socialNumber: socialNumber ?? '',
+          bankAccount: bankAccount ?? '',
+          email: email ?? '',
+          workEmail: workEmail ?? '',
+          phone: phone ?? '',
+          address: address ?? '',
+          emergencyContact: emergencyContact ?? '',
         );
       }); 
+
+      print("User: ${selectedUser!.firstName} ${selectedUser!.lastName}");
     }
   }
 

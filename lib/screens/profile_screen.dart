@@ -17,6 +17,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  String firstName = "";
+  String lastName = "";
+  String birthDate = "";
+  String nationality = "";
+  String socialNumber = "";
+  String bankAccount = "";
+  String email = "";
+  String workEmail = "";
+  String phone = "";
+  String address = "";
+  String emergencyContact = "";
+
+
   Map<String, dynamic>? userProfile;
   bool isLoading = true;
   String userInfo = "No data found";
@@ -27,6 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     // futureUserModel = ApiSerive().fetchUsers();
     // loadDetails();
+    loadUserData();
   }
 
   
@@ -102,9 +116,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //   );
   // }
 
-Future<void> getUserFromPrefs() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-}
+  Future<void> loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      firstName = prefs.getString('selectedFirstName') ?? "N/A";
+      lastName = prefs.getString('selectedLastName') ?? "N/A";
+      birthDate = prefs.getString('selectedBirthDate') ?? "N/A";
+      nationality = prefs.getString('selectedNationality') ?? "N/A";
+      bankAccount = prefs.getString('selectedBankAccount') ?? "N/A";
+      email = prefs.getString('selectedEmail') ?? "N/A";
+      workEmail = prefs.getString('selectedWorkEmail') ?? "N/A";
+      phone = prefs.getString('selectedPhone') ?? "N/A";
+      address = prefs.getString('selectedAddress') ?? "N/A";
+      emergencyContact = prefs.getString('selectedFirstName') ?? "N/A";
+    });
+
+    print("Profile of $firstName $lastName loaded.");
+  }
 
 
   @override
@@ -130,6 +159,21 @@ Future<void> getUserFromPrefs() async {
           }
         },
         child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Name: $firstName $lastName", style: TextStyle(fontSize: 18)),
+              Text("Birth Date: $birthDate"),
+              Text("Nationality: $nationality"),
+              Text("Social Number: $socialNumber"),
+              Text("Bank Account: $bankAccount"),
+              Text("Email: $email"),
+              Text("Work Email: $workEmail"),
+              Text("Phone: $phone"),
+              Text("Address: $address"),
+              Text("Emergency Contact: $emergencyContact"),
+            ],
+          ),
           // child: FutureBuilder<UserModel>(
           //   future: futureUserModel, 
           //   builder: (context, snapshot) {
