@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_poc_reloaded/screens/user_selection_screen.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
@@ -10,8 +12,9 @@ import '/screens/home_screen.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
 
+  WidgetsFlutterBinding.ensureInitialized();
+  
   final AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
     '@mipmap/ic_launcher'
   );
@@ -57,7 +60,8 @@ void main() {
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  WidgetsFlutterBinding.ensureInitialized();
+  // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
 
   _requestiOSPermissons();
 
@@ -110,6 +114,12 @@ final GoRouter _router = GoRouter(
         final int userId = int.parse(state.pathParameters['userId']!);
         // final Map<String, dynamic>? userProfile = state.extra as Map<String, dynamic>?;
         return ProfileScreen(userId: userId);
+      },
+    ),
+    GoRoute(
+      path: '/profile_testing',
+      builder: (context, state) {
+        return UserSelectionScreen();
       },
     ),
   ],

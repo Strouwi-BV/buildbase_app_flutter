@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,6 +124,13 @@ class NavigationDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             context.go('/profile/1');
+          },
+        ),ListTile(
+          leading: const Icon(Icons.account_circle),
+          title: const Text('ProfileTesting'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/profile_testing');
           },
         ),
       ],
