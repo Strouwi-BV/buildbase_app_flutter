@@ -11,7 +11,7 @@ class UserSelectionScreen extends StatefulWidget {
 }
 
 class _UserSelectionScreenState extends State<UserSelectionScreen> {
-  ApiSerive apiSerive = ApiSerive();
+  ApiService apiService = ApiService();
   List<UserModel> users = [];
   UserModel? selectedUser;
 
@@ -24,7 +24,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
 
   Future<void> fetchUsers() async {
     try {
-      List<UserModel> fetchedUsers = await apiSerive.fetchUsers();
+      List<UserModel> fetchedUsers = await apiService.fetchUsers();
       setState(() {
         users = fetchedUsers;
       });
@@ -33,7 +33,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
     }
   }
 
-  Future<void> saveSelectedUser(UserModel user) async {
+  Future<void> saveSelectedUserToPrefs(UserModel user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedUser', user.id);
     await prefs.setString('selectedUserName', "${user.firstName} ${user.lastName}");
@@ -93,6 +93,22 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
     }
   }
 
+  Future<void> loadSelectedUser() async {
+    UserModel? user = await ApiService.getSelectedUser();
+    if (user != null) {
+      setState(() {
+        selectedUser = user;
+      });
+    }
+  }
+
+  Future<void> saveSelectedUser(UserModel user) async {
+    await ApiService.saveSelectedUser(user);
+    setState(() {
+      selectedUser = user;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,20 +122,36 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         )
         : SizedBox(),
-        Expanded(
-          child: users.isEmpty ? Center(
-            child: CircularProgressIndicator()) : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                UserModel user = users[index];
-                return ListTile(
-                  title: Text("${user.firstName} ${user.lastName}"),
-                  onTap: () => saveSelectedUser(user),
-                  trailing: selectedUser?.id == user.id ? Icon(Icons.check_circle, color: Colors.green) : null,
-                );
-              },
-            ),
-          ),
+        DropdownButton<UserModel>(
+          value: selectedUser,
+          hint: Text("Select User"),
+          isExpanded: true,
+          onChanged: (UserModel? newUser) {
+            if (newUser != null) {
+              saveSelectedUserToPrefs(newUser);
+            }
+          },
+          items: users.map<DropdownMenuItem<UserModel>>((UserModel user) {
+            return DropdownMenuItem<UserModel>(
+              value: user,
+              child: Text("${user.firstName} ${user.lastName}"),
+            );
+          }).toList(),
+        ),
+        // Expanded(
+        //   child: users.isEmpty ? Center(
+        //     child: CircularProgressIndicator()) : ListView.builder(
+        //       itemCount: users.length,
+        //       itemBuilder: (context, index) {
+        //         UserModel user = users[index];
+        //         return ListTile(
+        //           title: Text("${user.firstName} ${user.lastName}"),
+        //           onTap: () => saveSelectedUserToPrefs(user),
+        //           trailing: selectedUser?.id == user.id ? Icon(Icons.check_circle, color: Colors.green) : null,
+        //         );
+        //       },
+        //     ),
+        //   ),
         ],
       ),
     );

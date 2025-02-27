@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart' as custom_widgets;
 import '../api/api_service.dart';
 import '../service/user_preferences.dart';
@@ -19,15 +20,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? userProfile;
   bool isLoading = true;
   String userInfo = "No data found";
-  late Future<UserModel> futureUserModel;
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _localNameController = TextEditingController();
-  final TextEditingController _surnameController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _functionController = TextEditingController();
-  final TextEditingController _departmentController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -38,8 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   
-
-
   //  void updateUserProfile() async {
   //    final success = updateUserProfile({
   //      "name": "Updated Name",
@@ -60,7 +50,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //     }
   //   }
   // }
-
   // void saveLocalDetails() async {
   //   if (_formKey.currentState!.validate()){
   //     await UserPreferences.saveUserDetails(
@@ -70,15 +59,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //       function: _functionController.text, 
   //       department: _departmentController.text,
   //       );
-
   //       updateDetails();
-
   //       ScaffoldMessenger.of(context).showSnackBar(
   //         SnackBar(content: Text("User details saved successfully!")),
   //       );
   //   }
   // }
-
   // void updateDetails(){
   //   setState(() {
   //     userInfo = '''
@@ -90,7 +76,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //     ''';
   //   });
   // }
-
   // void loadDetails() async {
   //   Map<String, String?> userDetails = await UserPreferences.getUserDetails();
   //   setState(() {
@@ -99,11 +84,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //     _dobController.text = userDetails["dob"] ?? "";
   //     _functionController.text = userDetails["function"] ?? "";
   //     _departmentController.text = userDetails["department"] ?? "";
-
   //     updateDetails();
   //   });
   // }
-
   // void clearDetails() async {
   //   await UserPreferences.clearUserDetails();
   //   setState(() {
@@ -113,13 +96,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   //     _functionController.clear();
   //     _departmentController.clear();
   //   });
-
   //   updateDetails();
-
   //   ScaffoldMessenger.of(context).showSnackBar(
   //     SnackBar(content: Text("User details cleared!")),
   //   );
   // }
+
+Future<void> getUserFromPrefs() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -144,26 +130,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
         },
         child: Center(
-          child: FutureBuilder<UserModel>(
-            future: futureUserModel, 
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
-              } else if (snapshot.hasData) {
-                UserModel userModel = snapshot.data!;
-                return Column (
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Name: ${userModel.firstName} ${userModel.lastName}", style: TextStyle(fontSize: 20))
-                  ],
-                );
-              } else {
-                return Text("No user found");
-              }
-            },
-          ),
+          // child: FutureBuilder<UserModel>(
+          //   future: futureUserModel, 
+          //   builder: (context, snapshot) {
+          //     if (snapshot.connectionState == ConnectionState.waiting) {
+          //       return CircularProgressIndicator();
+          //     } else if (snapshot.hasError) {
+          //       return Text("Error: ${snapshot.error}");
+          //     } else if (snapshot.hasData) {
+          //       UserModel userModel = snapshot.data!;
+          //       return Column (
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Text("Name: ${userModel.firstName} ${userModel.lastName}", style: TextStyle(fontSize: 20))
+          //         ],
+          //       );
+          //     } else {
+          //       return Text("No user found");
+          //     }
+          //   },
+          // ),
         ),
       ),
     );

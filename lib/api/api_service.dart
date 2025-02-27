@@ -4,7 +4,7 @@ import 'package:flutter_poc_reloaded/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ApiSerive{
+class ApiService{
   static const String baseUrl = "http://localhost:8080";
 
   Future<List<UserModel>> fetchUsers() async {
