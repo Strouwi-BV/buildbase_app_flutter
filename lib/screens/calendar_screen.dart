@@ -25,9 +25,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _eventController = EventController()..addListener(() {
-      setState(() {});
-    });
+    _eventController =
+        EventController()..addListener(() {
+          setState(() {});
+        });
   }
 
   @override
@@ -75,9 +76,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime firstDay = DateTime(now.year, now.month, 1);
     DateTime lastDay = DateTime(now.year, now.month + 1, 0);
 
-    for (DateTime date = firstDay;
-        date.isBefore(lastDay.add(Duration(days: 1)));
-        date = date.add(Duration(days: 1))) {
+    for (
+      DateTime date = firstDay;
+      date.isBefore(lastDay.add(Duration(days: 1)));
+      date = date.add(Duration(days: 1))
+    ) {
       String dayKey = DateFormat('yyyy-MM-dd').format(date);
       List<String> events = clockEvents[dayKey] ?? [];
       bool hasClockIn = events.any((e) => e.startsWith('Ingeklokt:'));
@@ -85,7 +88,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       String note = notes[dayKey] ?? '';
 
       // Skip coloring for weekends
-      if (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+      if (date.weekday == DateTime.saturday ||
+          date.weekday == DateTime.sunday) {
         continue;
       }
 
@@ -101,9 +105,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: '', // Empty title as requested
         startTime: date,
         endTime: date.add(Duration(hours: 24)),
-        color: hasClockIn
-            ? Colors.green.withOpacity(0.7)
-            : const Color.fromARGB(255, 231, 57, 44).withOpacity(0.7),
+        color:
+            hasClockIn
+                ? Colors.green.withOpacity(0.7)
+                : const Color.fromARGB(255, 231, 57, 44).withOpacity(0.7),
         description: events.join('\n'), // Store all events for this day
       );
       _eventController.add(eventData);
@@ -117,20 +122,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
       dateString = dateString.substring('Ingeklokt:'.length);
     } else if (dateString.startsWith('Uitgeklokt:')) {
       dateString = dateString.substring('Uitgeklokt:'.length);
-    }
-    else if (timeStamp.startsWith('Notities:')) {
-        // Als de string begint met 'Notities:', extraheer de datum
-        List<String> parts = timeStamp.split(' - ');
-        if (parts.length >= 2) {
-            dateString = parts[0].substring('Notities: '.length);
-        }
+    } else if (timeStamp.startsWith('Notities:')) {
+      // Als de string begint met 'Notities:', extraheer de datum
+      List<String> parts = timeStamp.split(' - ');
+      if (parts.length >= 2) {
+        dateString = parts[0].substring('Notities: '.length);
+      }
     }
 
     dateString = dateString.trim();
     try {
-        return DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateString);
+      return DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateString);
     } catch (e) {
-        return DateFormat('yyyy-MM-dd').parse(dateString);
+      return DateFormat('yyyy-MM-dd').parse(dateString);
     }
   }
 
@@ -151,15 +155,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               TextField(
                 controller: eventTextController,
-                decoration:
-                    InputDecoration(hintText: 'Voer evenement details in'),
+                decoration: InputDecoration(
+                  hintText: 'Voer evenement details in',
+                ),
               ),
               SizedBox(height: 8.0),
               TextField(
                 controller: noteTextController,
-                decoration: InputDecoration(
-                    hintText: 'Voer notitie in',
-                    ),
+                decoration: InputDecoration(hintText: 'Voer notitie in'),
               ),
               TextButton(
                 child: Text('Kies Datum'),
@@ -219,16 +222,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onPressed: () async {
                 if (eventTextController.text.isNotEmpty) {
                   final prefs = await SharedPreferences.getInstance();
-                  final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                  final formattedDate = DateFormat(
+                    'yyyy-MM-dd',
+                  ).format(selectedDate);
                   String noteText = noteTextController.text;
-                  String clockInTimeStamp = _formatDate(selectedDate, selectedStartTime);
-                  String clockOutTimeStamp = _formatDate(selectedDate, selectedEndTime);
-                  List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
-                  timeStamps.removeWhere((timeStamp) => timeStamp.contains(formattedDate));
-                  if(clockInTimeStamp != "Niet ingegeven"){
+                  String clockInTimeStamp = _formatDate(
+                    selectedDate,
+                    selectedStartTime,
+                  );
+                  String clockOutTimeStamp = _formatDate(
+                    selectedDate,
+                    selectedEndTime,
+                  );
+                  List<String> timeStamps =
+                      prefs.getStringList('timeStamps') ?? [];
+                  timeStamps.removeWhere(
+                    (timeStamp) => timeStamp.contains(formattedDate),
+                  );
+                  if (clockInTimeStamp != "Niet ingegeven") {
                     timeStamps.add('Ingeklokt: $clockInTimeStamp');
                   }
-                  if(clockOutTimeStamp != "Niet ingegeven"){
+                  if (clockOutTimeStamp != "Niet ingegeven") {
                     timeStamps.add('Uitgeklokt: $clockOutTimeStamp');
                   }
 
@@ -251,14 +265,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     selectedEndTime.minute,
                   );
                   setState(() {
-                    _eventController.add(CalendarEventData(
-                      date: eventStartDateTime,
-                      title: eventTextController.text,
-                      startTime: eventStartDateTime,
-                      endTime: eventEndDateTime,
-                    ));
+                    _eventController.add(
+                      CalendarEventData(
+                        date: eventStartDateTime,
+                        title: eventTextController.text,
+                        startTime: eventStartDateTime,
+                        endTime: eventEndDateTime,
+                      ),
+                    );
                   });
-                   _updateCalendar();
+                  _updateCalendar();
                   Navigator.of(context).pop();
                 }
               },
@@ -268,11 +284,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       },
     );
   }
+
   String _formatDate(DateTime date, TimeOfDay? time) {
     if (time == null) {
       return 'Niet ingegeven';
     }
-    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    DateTime dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
@@ -290,10 +313,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         useMagnifier: true,
         magnification: 1.3,
         onSelectedItemChanged: onChanged,
-        children: items
-            .map((item) => Center(
-                child: Text(item, style: TextStyle(fontSize: 20))))
-            .toList(),
+        children:
+            items
+                .map(
+                  (item) =>
+                      Center(child: Text(item, style: TextStyle(fontSize: 20))),
+                )
+                .toList(),
         controller: FixedExtentScrollController(initialItem: initialItem),
       ),
     );
@@ -333,44 +359,53 @@ class _CalendarScreenState extends State<CalendarScreen> {
     List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
     String noteKey = "Notities: $dayKey";
     String fullNote = timeStamps.firstWhere(
-        (element) => element.startsWith(noteKey),
-        orElse: () => "");
+      (element) => element.startsWith(noteKey),
+      orElse: () => "",
+    );
     if (fullNote.isNotEmpty) {
       noteText = fullNote.substring(noteKey.length + 3);
     }
     if (clockInEvents.isNotEmpty) {
-      clockInTime = DateFormat('HH:mm')
-          .format(_extractDateFromTimeStamp(clockInEvents.first));
+      clockInTime = DateFormat(
+        'HH:mm',
+      ).format(_extractDateFromTimeStamp(clockInEvents.first));
     } else {
       clockInTime = 'Niet ingeklokt';
     }
     if (clockOutEvents.isNotEmpty) {
-      clockOutTime = DateFormat('HH:mm')
-          .format(_extractDateFromTimeStamp(clockOutEvents.first));
+      clockOutTime = DateFormat(
+        'HH:mm',
+      ).format(_extractDateFromTimeStamp(clockOutEvents.first));
     } else {
       clockOutTime = "Niet uitgeklokt";
     }
 
     location = prefs.getString('currentLocation') ?? "Geen locatie beschikbaar";
 
-    context.push('/event-details', extra: {
-      'formattedDate': formattedDate,
-      'clockInTime': clockInTime,
-      'clockOutTime': clockOutTime,
-      'notes': noteText,
-      'location': location,
-      'onEditPressed': () async {
-        final result = await context.push('/edit-clock-in', extra: {
-          'date': event.date,
-          'clockInTime': clockInTime,
-          'clockOutTime': clockOutTime,
-          'notes': noteText,
-        });
-        if (result == true) {
-          _updateCalendar();
-        }
+    context.push(
+      '/event-details',
+      extra: {
+        'formattedDate': formattedDate,
+        'clockInTime': clockInTime,
+        'clockOutTime': clockOutTime,
+        'notes': noteText,
+        'location': location,
+        'onEditPressed': () async {
+          final result = await context.push(
+            '/edit-clock-in',
+            extra: {
+              'date': event.date,
+              'clockInTime': clockInTime,
+              'clockOutTime': clockOutTime,
+              'notes': noteText,
+            },
+          );
+          if (result == true) {
+            _updateCalendar();
+          }
+        },
       },
-    });
+    );
   }
 
   @override
@@ -378,10 +413,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       drawer: const custom_widgets.NavigationDrawer(),
       appBar: AppBar(
-        title: Text(
-          'Calendar',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Calendar', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xff13263B),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -389,12 +421,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             icon: Icon(Icons.today),
             onPressed: () {
               // Gebruik de juiste methode om naar de huidige datum te springen
-              _eventController.add(CalendarEventData(
-                date: DateTime.now(),
-                title: 'Today',
-                startTime: DateTime.now(),
-                endTime: DateTime.now().add(Duration(hours: 1)),
-              ));
+              _eventController.add(
+                CalendarEventData(
+                  date: DateTime.now(),
+                  title: 'Today',
+                  startTime: DateTime.now(),
+                  endTime: DateTime.now().add(Duration(hours: 1)),
+                ),
+              );
             },
           ),
           PopupMenuButton<String>(
@@ -403,20 +437,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 _currentViewType = viewType;
               });
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'Month',
-                child: Text('Maand Kalender'),
-              ),
-              PopupMenuItem(
-                value: 'Week',
-                child: Text('Week Kalender'),
-              ),
-              PopupMenuItem(
-                value: 'Day',
-                child: Text('Dag Kalender'),
-              ),
-            ],
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(value: 'Month', child: Text('Maand Kalender')),
+                  PopupMenuItem(value: 'Week', child: Text('Week Kalender')),
+                  PopupMenuItem(value: 'Day', child: Text('Dag Kalender')),
+                ],
             icon: Icon(Icons.view_agenda),
           ),
         ],
@@ -424,7 +450,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: _getCurrentView(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createEvent(DateTime.now()),
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: const Color(0xff91FF96), // Correcte syntax
       ),
     );
   }

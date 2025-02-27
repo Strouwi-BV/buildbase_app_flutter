@@ -28,18 +28,20 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedClockInTime = widget.currentClockIn != 'Niet ingeklokt'
-        ? TimeOfDay(
-            hour: int.parse(widget.currentClockIn.split(':')[0]),
-            minute: int.parse(widget.currentClockIn.split(':')[1]),
-          )
-        : null;
-    _selectedClockOutTime = widget.currentClockOut != 'Niet uitgeklokt'
-        ? TimeOfDay(
-            hour: int.parse(widget.currentClockOut.split(':')[0]),
-            minute: int.parse(widget.currentClockOut.split(':')[1]),
-          )
-        : null;
+    _selectedClockInTime =
+        widget.currentClockIn != 'Niet ingeklokt'
+            ? TimeOfDay(
+              hour: int.parse(widget.currentClockIn.split(':')[0]),
+              minute: int.parse(widget.currentClockIn.split(':')[1]),
+            )
+            : null;
+    _selectedClockOutTime =
+        widget.currentClockOut != 'Niet uitgeklokt'
+            ? TimeOfDay(
+              hour: int.parse(widget.currentClockOut.split(':')[0]),
+              minute: int.parse(widget.currentClockOut.split(':')[1]),
+            )
+            : null;
     _notesController = TextEditingController(text: widget.currentNotes);
   }
 
@@ -53,12 +55,17 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
     if (time == null) {
       return 'Niet ingegeven';
     }
-    DateTime dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    DateTime dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
   void _saveClockInOut() async {
-    // Sla de klok-in en klok-uit tijden en de notities op in shared preferences
     final prefs = await SharedPreferences.getInstance();
     final formattedDate = DateFormat('yyyy-MM-dd').format(widget.date);
     String clockInTimeStamp = _formatDate(widget.date, _selectedClockInTime);
@@ -74,19 +81,15 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
     if (clockOutTimeStamp != 'Niet ingegeven') {
       timeStamps.add('Uitgeklokt: $clockOutTimeStamp');
     }
-
     if (noteText.isNotEmpty) {
-      // Als er notities zijn, voeg ze toe
-        timeStamps.add('Notities: $formattedDate - $noteText');
-
-    }
-    else {
-        // Als er geen notities zijn, zorg ervoor dat er geen oude notities blijven staan
-        timeStamps.removeWhere((timeStamp) => timeStamp.contains('Notities: $formattedDate'));
+      timeStamps.add('Notities: $formattedDate - $noteText');
+    } else {
+      timeStamps.removeWhere(
+        (timeStamp) => timeStamp.contains('Notities: $formattedDate'),
+      );
     }
 
     await prefs.setStringList('timeStamps', timeStamps);
-    // Geef de bijgewerkte tijden terug aan de CalendarScreen
     context.pop(true);
     context.pop();
   }
@@ -95,7 +98,10 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bewerk klokken'),
+        title: Text(
+          'Bewerk klokken',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Color(0xff13263B),
         foregroundColor: Colors.white,
       ),
@@ -104,91 +110,104 @@ class _EditClockInScreenState extends State<EditClockInScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 16), // Extra witruimte boven de datum
             Center(
               child: Text(
                 'Datum: ${widget.date.day}-${widget.date.month}-${widget.date.year}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 16), // Extra witruimte onder de datum
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            SizedBox(height: 16),
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   children: [
-                    Text('Ingeklokt:'),
-                    SizedBox(width: 16),
-                    Text(_selectedClockInTime != null
-                        ? '${_selectedClockInTime!.hour.toString().padLeft(2, '0')}:${_selectedClockInTime!.minute.toString().padLeft(2, '0')}'
-                        : 'Niet ingeklokt'),
-                    SizedBox(width: 8),
-                    IconButton(
-                      icon: Icon(Icons.access_time),
-                      onPressed: () async {
-                        final TimeOfDay? selectedTime = await showTimePicker(
-                          context: context,
-                          initialTime: _selectedClockInTime ?? TimeOfDay.now(),
-                        );
-                        if (selectedTime != null) {
-                          setState(() {
-                            _selectedClockInTime = selectedTime;
-                          });
-                        }
-                      },
-                    ),
+                    _buildTimeRow('Ingeklokt', _selectedClockInTime, (time) {
+                      setState(() => _selectedClockInTime = time);
+                    }),
+                    Divider(),
+                    _buildTimeRow('Uitgeklokt', _selectedClockOutTime, (time) {
+                      setState(() => _selectedClockOutTime = time);
+                    }),
                   ],
                 ),
-                SizedBox(height: 8), // Verminderde witruimte tussen ingeklokt en uitgeklokt
-                Row(
-                  children: [
-                    Text('Uitgeklokt:'),
-                    SizedBox(width: 16),
-                    Text(_selectedClockOutTime != null
-                        ? '${_selectedClockOutTime!.hour.toString().padLeft(2, '0')}:${_selectedClockOutTime!.minute.toString().padLeft(2, '0')}'
-                        : 'Niet uitgeklokt'),
-                    SizedBox(width: 8),
-                    IconButton(
-                      icon: Icon(Icons.access_time),
-                      onPressed: () async {
-                        final TimeOfDay? selectedTime = await showTimePicker(
-                          context: context,
-                          initialTime: _selectedClockOutTime ?? TimeOfDay.now(),
-                        );
-                        if (selectedTime != null) {
-                          setState(() {
-                            _selectedClockOutTime = selectedTime;
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
             SizedBox(height: 16),
             TextField(
               controller: _notesController,
               decoration: InputDecoration(
                 labelText: 'Notities',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              maxLines: 5, // Maak er een box veld van
+              maxLines: 5,
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xff13263B),
-                foregroundColor: Colors.white,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff13263B),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Text(
+                  'Opslaan',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                onPressed: _saveClockInOut,
               ),
-              child: Text('Opslaan'),
-              onPressed: () {
-                _saveClockInOut();
-              },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTimeRow(
+    String label,
+    TimeOfDay? time,
+    Function(TimeOfDay?) onTimeSelected,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        Row(
+          children: [
+            Text(
+              time != null
+                  ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
+                  : 'Niet opgegeven',
+            ),
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(Icons.access_time, color: Colors.black),
+              onPressed: () async {
+                final selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: time ?? TimeOfDay.now(),
+                );
+                if (selectedTime != null) {
+                  onTimeSelected(selectedTime);
+                }
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
