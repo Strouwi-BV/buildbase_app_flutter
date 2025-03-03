@@ -33,7 +33,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   intl: ^0.17.0  # Voeg deze regel toe
   go_router: ^12.1.1  # Ensure this is the latest version
-  
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
