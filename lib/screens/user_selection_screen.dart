@@ -112,7 +112,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
   }
 
   Future<void> saveSelectedUser(UserModel user) async {
-    await ApiService.saveSelectedUser(user);
+    await ApiService.saveSelectedUserToPrefs(user);
     setState(() {
       selectedUser = user;
     });

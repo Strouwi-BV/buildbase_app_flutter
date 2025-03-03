@@ -38,7 +38,7 @@ class ApiService{
     }
   }
 
-  static Future<void> saveSelectedUser(UserModel user) async {
+  static Future<void> saveSelectedUserToPrefs(UserModel user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedUser', user.id);
     await prefs.setString('selectedUserName', "${user.firstName} ${user.lastName}");
@@ -93,6 +93,26 @@ class ApiService{
     return null;
   }
 
+  Future<bool> updateUser(int userId, UserModel user) async {
+    final url = Uri.parse("$baseUrl/users/$userId");
+
+    final response = await http.put(
+      url,
+      headers: {
+        "Content-Type" : "application/json",
+      },
+      body: jsonEncode(user.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      print("User updated");
+      return true;
+    } else {
+      print("Update failed: $response.body");
+      return false;
+    }
+  }
+
   static Future<bool> clockInOrOut(int userId, int clientId, int projectId) async {
     final response = await http.post(Uri.parse("$baseUrl/clocking/$userId/$clientId/$projectId"),
     headers: {"Content-Type" : "application/json"},
@@ -111,13 +131,5 @@ class ApiService{
     }
   }
 
-  // Future<bool> updateUserProfile(int userId, Map<String, dynamic> data) async {
-  //   final response = await put(
-  //     Uri.parse("$baseUrl/users/$userId"),
-  //     headers: {"Content-Type" : "application/json"},
-  //     body: jsonEncode(data),
-  //   );
 
-  //   return response.statusCode == 200;
-  // }
 }
