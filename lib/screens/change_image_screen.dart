@@ -1,4 +1,3 @@
-// import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -21,6 +20,12 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
         _image = File(pickedFile.path);
       });
     }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _image = null;
+    });
   }
 
   @override
@@ -79,6 +84,17 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
               ),
             ],
           ),
+          if (_image != null) ...[
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _removeImage,
+              icon: const Icon(Icons.delete),
+              label: const Text('Verwijder foto'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+            ),
+          ],
         ],
       ),
     );
