@@ -6,6 +6,7 @@ import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
+import 'package:buildbase_app_flutter/screens/registration_overview_screen.dart'; // Importeer hier je nieuwe scherm
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,20 @@ final GoRouter _router = GoRouter(
       path: '/change-image',
       builder: (context, state) {
         return const ChangeImageScreen();
+      },
+    ),
+    GoRoute(
+      path: '/registration-overview', // Voeg de nieuwe route hier toe
+      builder: (context, state) {
+        final String? startTime = state.extra as String?;
+        return RegistrationOverviewScreen(
+          startTime: startTime ?? '',
+          startDate: DateTime.now().toIso8601String(),
+          endDate: DateTime.now().toIso8601String(),
+          endTime: '17:00',
+          clientName: 'Default Client',
+          projectName: 'Default Project',
+        ); // Zet de starttijd door naar je nieuwe scherm
       },
     ),
   ],

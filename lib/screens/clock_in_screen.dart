@@ -1,12 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
-import 'package:buildbase_app_flutter/screens/nav_widget_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'header_bar_screen.dart';
 
-class ClockInScreen extends StatelessWidget {
+class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
 
   @override
+  _ClockInScreenState createState() => _ClockInScreenState();
+}
+
+class _ClockInScreenState extends State<ClockInScreen> {
+  late String _startTime;
+
+  void _startClockIn() {
+    setState(() {
+      _startTime = TimeOfDay.now().format(context);
+    });
+
+    context.go(
+      '/registration-overview',
+      extra: _startTime,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Initialiseer _startTime hier in plaats van in initState
+    _startTime = TimeOfDay.now().format(context);
+
     return Scaffold(
       appBar: const HeaderBar(userName: 'Tom Peeters'),
       drawer: Drawer(
@@ -81,7 +102,7 @@ class ClockInScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: _startClockIn,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -101,6 +122,59 @@ class ClockInScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildHeader(BuildContext context) {
+    return Container(
+      color: const Color(0xff13263B),
+      padding: EdgeInsets.only(
+        top: 12 + MediaQuery.of(context).padding.top,
+        bottom: 12,
+      ),
+      child: Image.network(
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSE9nfuUHODaRVxxYt52rm2NbDDOrCd-3_Z3w&s',
+        height: 100,
+      ),
+    );
+  }
+
+  Widget buildMenuItems(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.home),
+          title: const Text('Home'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.calendar_today_sharp),
+          title: const Text('Calendar'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/calendar', extra: "Meeting at 11:30 AM");
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.access_time_outlined),
+          title: const Text('Clock In'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/clock-in', extra: 12345);
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.account_circle),
+          title: const Text('Profile'),
+          onTap: () {
+            Navigator.pop(context);
+            context.go('/profile/1');
+          },
+        ),
+      ],
     );
   }
 }
