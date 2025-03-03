@@ -25,7 +25,7 @@ class LoginScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                '../assets/Logo_zwart.png',
+                'assets/Logo_zwart.png',
                 height: 100,
               ),
               const SizedBox(
@@ -70,7 +70,12 @@ class LoginScreen extends StatelessWidget {
                         backgroundColor: Colors.black,
                         minimumSize: const Size.fromHeight(50),
                       ),
-                      child: const Text('Sign in'),
+                      child: const Text(
+                        'Sign in',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     const SizedBox(
                       height: 10,
