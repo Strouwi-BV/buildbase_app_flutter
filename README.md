@@ -27,7 +27,14 @@
 1. Ga naar de officiële website van Android Studio: https://developer.android.com/studio
 2. Download Android Studio en volg het installatieproces (het is belangrijk dat **Android SDK**, **Android SDK Platform** en **Android Virtual Device** allemaal zijn aangevinkt).
 
+## Project Runnen
 
+1. Start Android Studio en open het Flutter-project.
+2. Selecteer een emulator of een fysiek apparaat.
+3. Start het project via de terminal:
+   ```flutter run```
+   
+4. Of klik op de Run-knop in Android Studio.
 
 # Flutter vs React Native
 
