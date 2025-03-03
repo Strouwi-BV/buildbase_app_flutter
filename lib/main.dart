@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
@@ -47,6 +48,12 @@ final GoRouter _router = GoRouter(
       path: '/change-image',
       builder: (context, state) {
         return const ChangeImageScreen();
+      },
+    ),
+    GoRoute(
+      path: '/log-in',
+      builder: (context, state) {
+        return const LoginScreen();
       },
     ),
   ],
