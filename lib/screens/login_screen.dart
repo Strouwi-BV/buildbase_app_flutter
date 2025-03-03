@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'header_bar_screen.dart';
 import 'nav_widget_screen.dart';
 class LoginScreen extends StatelessWidget {
 
   const LoginScreen({Key? key}) : super(key: key);
+
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,21 +72,36 @@ class LoginScreen extends StatelessWidget {
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         minimumSize: const Size.fromHeight(50),
                       ),
                       child: const Text(
                         'Sign in',
                         style: TextStyle(
                           color: Colors.white,
+                          fontSize: 18,
                         ),
                       ),
                     ),
                     const SizedBox(
-                      height: 10,
+                      height: 20,
                     ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot password?'),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          'Forgot password?',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black,
+                            decoration: TextDecoration.underline
+                            
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
