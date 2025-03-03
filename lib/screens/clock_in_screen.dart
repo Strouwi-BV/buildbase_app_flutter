@@ -8,7 +8,7 @@ class ClockInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Clock In'),
+      appBar: const HeaderBar(userName: 'Tom Peeters'),
       drawer: Drawer(
         child: SingleChildScrollView(
           child: Column(

@@ -5,18 +5,20 @@ import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
-
+import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
- 
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: _router);
+    return MaterialApp.router(
+      routerConfig: _router,
+    );
   }
 }
 

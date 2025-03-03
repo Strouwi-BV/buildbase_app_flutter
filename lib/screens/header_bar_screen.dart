@@ -2,22 +2,14 @@ import 'package:flutter/material.dart';
 import '/screens/change_image_screen.dart';
 
 class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
+  final String userName;
 
-  const HeaderBar({Key? key, required this.title}) : super(key: key);
+  const HeaderBar({Key? key, required this.userName}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: const Color(0xff13263B), // Terug naar de originele kleur
+      backgroundColor: const Color(0xff13263B),
       iconTheme: const IconThemeData(color: Colors.white),
       leading: IconButton(
         icon: const Icon(Icons.menu),
@@ -25,21 +17,41 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
           Scaffold.of(context).openDrawer();
         },
       ),
-      actions: <Widget>[
-        _buildProfileMenu(context),
+      centerTitle: false,
+      actions: [
+        Row(
+          children: [
+            Text(
+              userName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildProfileMenu(context),
+          ],
+        ),
       ],
-      elevation: 4, // Schaduw effect
-      shadowColor: Colors.black45, // Kleur van de schaduw
+      elevation: 4,
+      shadowColor: Colors.black45,
     );
   }
 
   Widget _buildProfileMenu(BuildContext context) {
     return PopupMenuButton<int>(
       icon: Row(
-        children: const [
-          Icon(Icons.account_circle),
-          SizedBox(width: 4),
-          Icon(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: Text(
+              userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
             Icons.arrow_drop_down,
             color: Colors.grey,
           ),
@@ -53,15 +65,18 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
+                children: [
                   CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        'https://via.placeholder.com/150'), // Placeholder image
+                    backgroundColor: Colors.blue,
+                    child: Text(
+                      userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
-                    'Tom Peeters',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    userName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -99,17 +114,14 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
   void _onMenuSelected(BuildContext context, int item) {
     switch (item) {
       case 0:
-        // Navigate to profile screen
         Navigator.of(context).pushNamed('/profile/1');
         break;
       case 1:
-        // Navigate to change image screen
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const ChangeImageScreen()),
         );
         break;
       case 2:
-        // Handle logout
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logged out')),
         );

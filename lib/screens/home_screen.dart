@@ -8,7 +8,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Home'),
+      appBar: const HeaderBar(userName: 'Tom Peeters'), // Updated userName
       drawer: const NavigationDrawer(),
       body: Center(
         child: Column(
