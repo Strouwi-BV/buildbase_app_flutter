@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
 
 class ChangeImageScreen extends StatelessWidget {
   const ChangeImageScreen({Key? key}) : super(key: key);
@@ -24,9 +23,7 @@ class ChangeImageScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Center(
-        child: Text('Hier kun je je afbeelding wijzigen.'),
-      ),
+      body: Center(child: Text('Hier kun je je afbeelding wijzigen.')),
     );
   }
 }
