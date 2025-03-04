@@ -5,7 +5,6 @@ import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
-import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
 import 'package:buildbase_app_flutter/screens/registration_overview_screen.dart'; // Importeer hier je nieuwe scherm
 
 void main() async {
@@ -25,7 +24,7 @@ class MyApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   routes: [
-    GoRoute(path: '/', builder: (context, state) => HomeScreen()),
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
@@ -63,6 +62,7 @@ final GoRouter _router = GoRouter(
           endTime: '17:00',
           clientName: 'Default Client',
           projectName: 'Default Project',
+          date: '27/02/2025', // Zet de datum door naar je nieuwe scherm: '27/02/2025',
         ); // Zet de starttijd door naar je nieuwe scherm
       },
     ),
