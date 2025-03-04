@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:buildbase_app_flutter/model/login_response.dart';
-import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
