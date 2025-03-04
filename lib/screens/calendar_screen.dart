@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
-import 'package:buildbase_app_flutter/screens/nav_widget_screen.dart';
+import 'package:buildbase_app_flutter/main.dart';
+
 class CalendarScreen extends StatelessWidget {
   final String data;
 
@@ -18,9 +19,7 @@ class CalendarScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Text(data),
-      ),
+      body: Center(child: Text(data)),
     );
   }
 }

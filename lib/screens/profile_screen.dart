@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
-import 'nav_widget_screen.dart';
+import 'package:buildbase_app_flutter/main.dart';
 
 class ProfileScreen extends StatelessWidget {
   final int userId;
@@ -19,9 +19,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Text('Profile Screen Content for user $userId'),
-      ),
+      body: Center(child: Text('Profile Screen Content for user $userId')),
     );
   }
 }
