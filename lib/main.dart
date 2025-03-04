@@ -6,11 +6,12 @@ import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/home_screen.dart';
 import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 void main() async {
+  await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
- 
   runApp(MyApp());
 }
 
