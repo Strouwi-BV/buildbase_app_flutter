@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/screens/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
 final GoRouter _router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => ClockInScreen()),
+
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
@@ -39,6 +41,7 @@ final GoRouter _router = GoRouter(
       path: '/change-image',
       builder: (context, state) => ChangeImageScreen(),
     ),
+    GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
   ],
 );
 
@@ -60,18 +63,9 @@ Widget buildMenuItems(BuildContext context) {
   return Column(
     children: [
       ListTile(
-        leading: const Icon(Icons.home),
-        title: const Text('Home'),
-        onTap: () {
-          Navigator.pop(context);
-          context.go('/');
-        },
-      ),
-      ListTile(
         leading: const Icon(Icons.calendar_today_sharp),
         title: const Text('Calendar'),
         onTap: () {
-          Navigator.pop(context);
           context.go('/calendar', extra: "Meeting at 11:30 AM");
         },
       ),
@@ -79,7 +73,6 @@ Widget buildMenuItems(BuildContext context) {
         leading: const Icon(Icons.access_time_outlined),
         title: const Text('Clock In'),
         onTap: () {
-          Navigator.pop(context);
           context.go('/clock-in');
         },
       ),
@@ -87,7 +80,6 @@ Widget buildMenuItems(BuildContext context) {
         leading: const Icon(Icons.account_circle),
         title: const Text('Profile'),
         onTap: () {
-          Navigator.pop(context);
           context.go('/profile/1');
         },
       ),
