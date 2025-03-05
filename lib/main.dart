@@ -6,8 +6,6 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
-import '/screens/home_screen.dart';
-import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
@@ -57,6 +55,8 @@ final GoRouter _router = GoRouter(
         return const LoginScreen();
       },
     ),
+    
+
   ],
 );
 
@@ -92,6 +92,15 @@ Widget buildMenuItems(BuildContext context) {
           title: const Text('Profile'),
           onTap: () {
             context.go('/profile/1');
+          },
+        ),
+        ListTile(
+          iconColor: Colors.white,
+          textColor: Colors.white,
+          leading: const Icon(Icons.login),
+          title: const Text('Login'),
+          onTap: () {
+            context.go('/log-in');
           },
         ),
       ],

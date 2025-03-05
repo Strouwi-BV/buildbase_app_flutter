@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
-import 'nav_widget_screen.dart';
 class LoginScreen extends StatelessWidget {
 
   const LoginScreen({Key? key}) : super(key: key);
@@ -41,14 +40,6 @@ class LoginScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const HeaderBar(title: 'Log In'),
-      drawer: Drawer(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[buildHeader(context), buildMenuItems(context)],
-          ),
-        ),
-      ),
       backgroundColor: Colors.white,
       body: Center(
         child: Padding(
