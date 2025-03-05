@@ -11,21 +11,35 @@ class ClockInScreen extends StatefulWidget {
 
 class _ClockInScreenState extends State<ClockInScreen> {
   late String _startTime;
+  late String _endTime;
+  String _selectedClient = 'Strouwi'; // Default values
+  String _selectedProject = 'Buildbase App';
+  List<String> _clientNames = ['Strouwi', 'Client 2', 'Client 3'];
+  List<String> _projectNames = ['Buildbase App', 'Project 2', 'Project 3'];
 
   void _startClockIn() {
     setState(() {
       _startTime = TimeOfDay.now().format(context);
+      _endTime = TimeOfDay.now().format(context);
     });
 
+    // Navigate to RegistrationOverviewScreen and pass the selected values
     context.go(
       '/registration-overview',
-      extra: _startTime,
+      extra: {
+        'startTime': _startTime,
+        'clientName': _selectedClient,
+        'projectName': _selectedProject,
+        'startDate': DateTime.now().toIso8601String(),
+        'endDate': DateTime.now().toIso8601String(),
+        'endTime': _endTime,
+        'date': '27/02/2025' // You can make this dynamic
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Initialiseer _startTime hier in plaats van in initState
     _startTime = TimeOfDay.now().format(context);
 
     return Scaffold(
@@ -55,14 +69,18 @@ class _ClockInScreenState extends State<ClockInScreen> {
                 children: [
                   DropdownButton<String>(
                     isExpanded: true,
-                    value: 'Strouwi',
-                    items: ['Strouwi'].map((String value) {
+                    value: _selectedClient,
+                    items: _clientNames.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {},
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedClient = newValue!;
+                      });
+                    },
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],
@@ -79,14 +97,18 @@ class _ClockInScreenState extends State<ClockInScreen> {
                 children: [
                   DropdownButton<String>(
                     isExpanded: true,
-                    value: 'Buildbase App',
-                    items: ['Buildbase App'].map((String value) {
+                    value: _selectedProject,
+                    items: _projectNames.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(value),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {},
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedProject = newValue!;
+                      });
+                    },
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],
@@ -97,7 +119,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
               onPressed: _startClockIn,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -117,4 +140,3 @@ class _ClockInScreenState extends State<ClockInScreen> {
     );
   }
 }
-  

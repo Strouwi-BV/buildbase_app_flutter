@@ -39,7 +39,6 @@ class LoginScreen extends StatelessWidget {
     final passwordController = TextEditingController();
 
     return Scaffold(
-      appBar: const HeaderBar(title: 'Log In'),
       backgroundColor: Colors.white,
       body: Center(
         child: Padding(
