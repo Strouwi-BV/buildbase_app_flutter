@@ -1,13 +1,15 @@
 import 'package:buildbase_app_flutter/screens/menu_screen.dart';
+import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
-import '/screens/registration_overview_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
@@ -46,19 +48,12 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => ChangeImageScreen(),
     ),
     GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
-    GoRoute(path: '/registration-overview', builder: (context, state) {        
-      final String? startTime = state.extra as String?;   
-      return RegistrationOverviewScreen(      
-       startTime: startTime ?? '',     
-       startDate: DateTime.now().toIso8601String(),   
-       endDate: DateTime.now().toIso8601String(),
-       endTime: '17:00',      
-       clientName: 'Default Client',    
-       projectName: 'Default Project',      
-       date: '27/02/2025',  
-              );
-          },
-   ),
+    GoRoute(
+      path: '/log-in',
+      builder: (context, state) {
+        return const LoginScreen();
+      },
+    ),
   ],
 );
 
@@ -94,6 +89,15 @@ Widget buildMenuItems(BuildContext context) {
           title: const Text('Profile'),
           onTap: () {
             context.go('/profile/1');
+          },
+        ),
+        ListTile(
+          iconColor: Colors.white,
+          textColor: Colors.white,
+          leading: const Icon(Icons.login),
+          title: const Text('Login'),
+          onTap: () {
+            context.go('/log-in');
           },
         ),
       ],
