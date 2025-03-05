@@ -14,11 +14,13 @@ class ApiService {
 
   Future<LoginResponse?> login(String email, String password) async {
     final url = Uri.parse('$_baseUrl/users/login');
-    final headers = {'Content-Type' : 'application/json'};
+    final headers = {'Content-Type' : 'application/hal+json'};
     final body = jsonEncode({'email': email, 'password' : password});
 
     try {
       final response = await http.post(url, headers: headers, body: body);
+      print('In try...');
+      print('Status code: ${response.statusCode}');
 
       if (response.statusCode == 200 ) {
         final jsonResponse = jsonDecode(response.body);
