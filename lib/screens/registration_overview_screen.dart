@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
-import 'package:intl/intl.dart';
 
 class RegistrationOverviewScreen extends StatelessWidget {
   final String startDate;

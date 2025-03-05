@@ -5,6 +5,7 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
+import '/screens/registration_overview_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,19 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => ChangeImageScreen(),
     ),
     GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
+    GoRoute(path: '/registration-overview', builder: (context, state) {        
+      final String? startTime = state.extra as String?;   
+      return RegistrationOverviewScreen(      
+       startTime: startTime ?? '',     
+       startDate: DateTime.now().toIso8601String(),   
+       endDate: DateTime.now().toIso8601String(),
+       endTime: '17:00',      
+       clientName: 'Default Client',    
+       projectName: 'Default Project',      
+       date: '27/02/2025',  
+              );
+          },
+   ),
   ],
 );
 
@@ -86,18 +100,3 @@ Widget buildMenuItems(BuildContext context) {
     ),
   );
 }
-
-/*Route _createRoute(Widget child) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0.0, 1.0);
-      const end = Offset.zero;
-      const curve = Curves.ease;
-
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-      return SlideTransition(position: animation.drive(tween), child: child);
-    },
-  );
-}*/
