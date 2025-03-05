@@ -1,4 +1,4 @@
-package com.example.flutter_poc_reloaded
+package com.example.buildbase_app_flutter
 
 import io.flutter.embedding.android.FlutterActivity
 

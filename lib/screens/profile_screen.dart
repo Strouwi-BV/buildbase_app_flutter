@@ -1,148 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../api/api_service.dart';
-import 'home_screen.dart' as custom_widgets;
+import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
+import 'nav_widget_screen.dart';
 
-
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   final int userId;
 
-  ProfileScreen({required this.userId});
-
-  @override
-  _ProfileScreenState createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  Map<String, dynamic>? userProfile;
-  bool isLoading = true;
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserProfile();
-  }
-
-  void fetchUserProfile() async {
-    final data = await ApiSerive.fetchUserProfile(widget.userId);
-    setState(() {
-      userProfile = data;
-      isLoading = false;
-
-      if (userProfile != null) {
-        _nameController.text = userProfile!['name'] ?? "";
-        _ageController.text = userProfile!['age']?.toString() ?? "";
-      }
-    });
-  }
-
-   void updateUserProfile() async {
-     final success = await ApiSerive.updateUserProfile(widget.userId, {
-       "name": "Updated Name",
-       "age": userProfile?['age'] ?? 25,
-     });
-
-    if (_formKey.currentState!.validate()) {
-      final success = await ApiSerive.updateUserProfile(widget.userId, {
-        "name" : _nameController.text,
-        "age" : int.tryParse(_ageController.text) ?? userProfile?['age'] ?? 25,
-      });
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Profile updated!")));
-        fetchUserProfile();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Update failed!")));
-      }
-    }
-  }
+  const ProfileScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const custom_widgets.NavigationDrawer(),
-      appBar: AppBar(
-        title: const Text(
-          "Profile",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+      appBar: const HeaderBar(title: 'Profile'),
+      drawer: Drawer(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[buildHeader(context), buildMenuItems(context)],
           ),
         ),
-        backgroundColor: const Color(0xff13263B),
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity! > 0) {
-            context.go('/');
-          }
-        },
-        child: Center(
-          child: isLoading
-              ? CircularProgressIndicator()
-              : userProfile == null
-                  ? const Text("Failed to load profile")
-                  : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Update Profile", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: "Name",
-                              border: UnderlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please enter a name";
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _ageController,
-                            decoration: const InputDecoration(
-                              labelText: "Age",
-                              border: UnderlineInputBorder(),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please enter a valid age";
-                              }
-                              if (int.tryParse(value) == null) {
-                                return "Please enter your age in valid numbers";
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: updateUserProfile, 
-                              child: const Text("Update Profile"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-        ),
+      body: Center(
+        child: Text('Profile Screen Content for user $userId'),
       ),
     );
   }
