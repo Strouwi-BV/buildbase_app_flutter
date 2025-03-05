@@ -1,12 +1,18 @@
 import 'package:buildbase_app_flutter/screens/menu_screen.dart';
+import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
+import '/screens/home_screen.dart';
+import 'package:buildbase_app_flutter/screens/change_image_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+
+void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
@@ -45,6 +51,12 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => ChangeImageScreen(),
     ),
     GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
+    GoRoute(
+      path: '/log-in',
+      builder: (context, state) {
+        return const LoginScreen();
+      },
+    ),
   ],
 );
 
@@ -86,18 +98,3 @@ Widget buildMenuItems(BuildContext context) {
     ),
   );
 }
-
-/*Route _createRoute(Widget child) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0.0, 1.0);
-      const end = Offset.zero;
-      const curve = Curves.ease;
-
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-      return SlideTransition(position: animation.drive(tween), child: child);
-    },
-  );
-}*/
