@@ -1,15 +1,20 @@
+import 'package:buildbase_app_flutter/screens/forgot_password_screen.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
-class LoginScreen extends StatelessWidget {
 
+class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-  Future<void> _login(BuildContext context, String email, String password) async {
+  Future<void> _login(
+    BuildContext context,
+    String email,
+    String password,
+  ) async {
     final apiService = ApiService();
     final loginResponse = await apiService.login(email, password);
 
@@ -17,21 +22,23 @@ class LoginScreen extends StatelessWidget {
       context.go('/calendar');
     } else {
       showDialog(
-        context: context, 
-        builder: (context) => AlertDialog(
-          title: const Text('Login Failed'),
-          content: const Text('Invalid email or password, please try again'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), 
-              child: const Text('Ok'),
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Login Failed'),
+              content: const Text(
+                'Invalid email or password, please try again',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Ok'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -47,24 +54,14 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/Logo_zwart.png',
-                height: 100,
-              ),
-              const SizedBox(
-                height: 40,
-              ),
+              Image.asset('assets/Logo_zwart.png', height: 100),
+              const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      blurRadius: 1,
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 1)],
                 ),
                 child: Column(
                   children: [
@@ -75,9 +72,7 @@ class LoginScreen extends StatelessWidget {
                         border: OutlineInputBorder(),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     TextField(
                       controller: passwordController,
                       obscureText: true,
@@ -86,12 +81,14 @@ class LoginScreen extends StatelessWidget {
                         border: OutlineInputBorder(),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        _login(context, emailController.text, passwordController.text);
+                        _login(
+                          context,
+                          emailController.text,
+                          passwordController.text,
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
@@ -102,28 +99,27 @@ class LoginScreen extends StatelessWidget {
                       ),
                       child: const Text(
                         'Sign in',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     Align(
                       alignment: Alignment.bottomLeft,
                       child: TextButton(
                         onPressed: () {
-                          context.go('/forgot-password');
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => const ForgotPasswordScreen(),
+                            ),
+                          );
                         },
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.black,
-                            decoration: TextDecoration.underline
-                            
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),

@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/screens/forgot_password_screen.dart';
 import 'package:buildbase_app_flutter/screens/menu_screen.dart';
 import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +9,14 @@ import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
+//bib@bib.be
+//Test123
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -55,8 +57,12 @@ final GoRouter _router = GoRouter(
         return const LoginScreen();
       },
     ),
-    
-
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) {
+        return const ForgotPasswordScreen();
+      },
+    ),
   ],
 );
 
