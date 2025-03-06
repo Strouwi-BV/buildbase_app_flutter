@@ -9,7 +9,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Profile'),
+      appBar: const HeaderBar(userName: 'Tom Peeters'),
       body: Center(child: Text('Profile Screen Content for user $userId')),
     );
   }
