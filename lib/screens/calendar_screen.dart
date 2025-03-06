@@ -9,7 +9,7 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Calendar'),
+      appBar: const HeaderBar(userName: 'Tom Peeters'),
       body: Center(child: Text(data)),
     );
   }

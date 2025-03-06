@@ -7,7 +7,7 @@ class ClockInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Clock In'),
+      appBar: const HeaderBar(userName: 'Tom peeters'),
       body: const Center(child: Text('Clock In Screen Content')),
     );
   }
