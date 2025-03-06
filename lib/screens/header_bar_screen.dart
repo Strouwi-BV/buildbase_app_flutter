@@ -224,78 +224,96 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Wijzig Afbeelding',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         backgroundColor: const Color(0xff13263B),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
+        title: const Text('Wijzig Profielfoto', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: _image == null
-                ? const CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Colors.grey,
-                    child: Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.grey.shade300,
+                  backgroundImage: _image != null ? FileImage(_image!) : null,
+                  child: _image == null
+                      ? const Icon(Icons.person, size: 80, color: Colors.white)
+                      : null,
+                ),
+                if (_image != null)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: GestureDetector(
+                      onTap: _removeImage,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.delete, color: Colors.white, size: 24),
+                      ),
                     ),
-                  )
-                : CircleAvatar(
-                    radius: 80,
-                    backgroundImage: FileImage(_image!),
                   ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+              ],
+            ),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt, color: Colors.white),
+                  label: const Text('Maak foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff13263B),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 3,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library, color: Colors.white),
+                  label: const Text('Upload foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff13263B),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 3,
+                  ),
+                ),
+              ],
+            ),
+            if (_image != null) ...[
+              const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera),
-                label: const Text('Maak foto'),
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Upload foto'),
+                onPressed: () async {
+                  await _saveImage(_image!);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.save, color: Colors.white),
+                label: const Text('Opslaan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 3,
+                ),
               ),
             ],
-          ),
-          if (_image != null) ...[
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _removeImage,
-              icon: const Icon(Icons.delete),
-              label: const Text('Verwijder foto'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-            ),
-            const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _saveImage(_image!);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Opslaan'),
-                )
           ],
-        ],
+        ),
       ),
     );
   }

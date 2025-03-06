@@ -89,9 +89,9 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
             ElevatedButton.icon(
               onPressed: _removeImage,
               icon: const Icon(Icons.delete),
-              label: const Text('Verwijder foto'),
+              label: const Text(''),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.green,
               ),
             ),
           ],
