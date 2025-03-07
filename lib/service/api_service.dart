@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:buildbase_app_flutter/model/login_response.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -44,5 +45,41 @@ class ApiService {
       print('Error during login: $e');
       return null;
     }
+  }
+
+  Future<String?> fetchUserAvatar(String? userId) async {
+    userId = await SecureStorageService().readData('id');
+    final url = Uri.parse('$_baseUrl/users/$userId/avatar');
+
+    String? organization = await SecureStorageService().readData('organizationId');
+    String? token = await SecureStorageService().readData('token');
+
+    if (organization == null || token == null) {
+      print('No organization set');
+      return null;
+    }
+
+    final headers = {
+      'Content-Type': 'application/hal+json',
+      'Organization': organization,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.isNotEmpty) {
+          return jsonResponse.toString();
+        } else {
+          print("Avatar URL not found");
+        }
+      } else {
+        print('Failed to load avatar URL: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching avatar URL: $e');
+    }
+    return null;
   }
 }

@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/screens/change_image_screen.dart';
+import '../service/secure_storage_service.dart' as secure;
 
 class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
   const HeaderBar({Key? key, required this.title}) : super(key: key);
+  
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  
+  // duplicate? 
+  // @override
+  // Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +40,7 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
 }
 
 Widget _buildProfileMenu(BuildContext context) {
@@ -121,5 +128,3 @@ void _onMenuSelected(BuildContext context, int item) {
   }
 }
 
-@override
-Size get preferredSize => const Size.fromHeight(kToolbarHeight);
