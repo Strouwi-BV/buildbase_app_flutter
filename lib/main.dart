@@ -42,7 +42,10 @@ class MyApp extends StatelessWidget {
       ),
       GoRoute(
         path: '/change-image',
-        builder: (context, state) => ChangeImageScreen(),
+        builder: (context, state) {
+          final VoidCallback onImageChanged = state.extra as VoidCallback;
+          return ChangeImageScreen(onImageChanged: onImageChanged);
+        },
       ),
       GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
       GoRoute(

@@ -121,7 +121,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             minimumSize: const Size.fromHeight(50),
                           ),
                           child: const Text(
-                            'Renew',
+                            'Submit',
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
                         ),
