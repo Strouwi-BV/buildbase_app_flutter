@@ -10,7 +10,8 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
   final String userName;
   final bool showProfile;
 
-  const HeaderBar({Key? key, required this.userName, this.showProfile = true}) : super(key: key);
+  const HeaderBar({Key? key, required this.userName, this.showProfile = true})
+      : super(key: key);
 
   @override
   State<HeaderBar> createState() => _HeaderBarState();
@@ -50,22 +51,24 @@ class _HeaderBarState extends State<HeaderBar> {
         },
       ),
       centerTitle: false,
-      actions: widget.showProfile ? [
-        Row(
-          children: [
-            Text(
-              widget.userName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      actions: widget.showProfile
+          ? [
+              Row(
+                children: [
+                  Text(
+                    widget.userName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildProfileMenu(context),
+                ],
               ),
-            ),
-            const SizedBox(width: 8),
-            _buildProfileMenu(context),
-          ],
-        ),
-      ] : null,
+            ]
+          : null,
       elevation: 4,
       shadowColor: Colors.black45,
     );
@@ -73,22 +76,7 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileMenu(BuildContext context) {
     return PopupMenuButton<int>(
-      icon: Row(
-        children: [
-          // CircleAvatar(
-          //   backgroundColor: Colors.blue,
-          //   child: Text(
-          //     userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
-          //     style: const TextStyle(color: Colors.white),
-          //   ),
-          // ),
-          // const SizedBox(width: 4),
-          // const Icon(
-          //   Icons.arrow_drop_down,
-          //   color: Colors.grey,
-          // ),
-        ],
-      ),
+      icon: _buildProfileAvatar(),
       onSelected: (item) => _onMenuSelected(context, item),
       itemBuilder: (context) => [
         PopupMenuItem<int>(
@@ -98,18 +86,12 @@ class _HeaderBarState extends State<HeaderBar> {
             children: [
               Row(
                 children: [
-                  // CircleAvatar(
-                  //   backgroundColor: Colors.blue,
-                  //   child: Text(
-                  //     //userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
-                  //     style: const TextStyle(color: Colors.white),
-                  //   ),
-                  // ),
-                  // const SizedBox(width: 8),
-                  // Text(
-                  //   userName,
-                  //   style: const TextStyle(fontWeight: FontWeight.bold),
-                  // ),
+                  _buildProfileAvatar(),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.userName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
@@ -142,13 +124,16 @@ class _HeaderBarState extends State<HeaderBar> {
       ],
     );
   }
+
   Widget _buildProfileAvatar() {
     if (_profileImage != null) {
       return CircleAvatar(
         backgroundImage: FileImage(_profileImage!),
+        radius: 20,
       );
     } else {
       return CircleAvatar(
+        radius: 20,
         backgroundColor: Colors.blue,
         child: Text(
           widget.userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
@@ -166,7 +151,9 @@ class _HeaderBarState extends State<HeaderBar> {
       case 1:
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (context) => ChangeImageScreen(onImageChanged: _onProfileImageChanged,)),
+            builder: (context) => ChangeImageScreen(
+                onImageChanged: _onProfileImageChanged),
+          ),
         );
         break;
       case 2:
@@ -240,7 +227,8 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Wijzig Profielfoto', style: TextStyle(color: Colors.white)),
+        title: const Text('Wijzig Profielfoto',
+            style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: Padding(
@@ -271,7 +259,8 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                           color: Colors.red,
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.delete, color: Colors.white, size: 24),
+                        child: const Icon(Icons.delete,
+                            color: Colors.white, size: 24),
                       ),
                     ),
                   ),
@@ -284,11 +273,17 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.camera),
                   icon: const Icon(Icons.camera_alt, color: Colors.white),
-                  label: const Text('Maak foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  label: const Text('Maak foto',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff13263B),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 3,
                   ),
                 ),
@@ -296,11 +291,17 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.gallery),
                   icon: const Icon(Icons.photo_library, color: Colors.white),
-                  label: const Text('Upload foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  label: const Text('Upload foto',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff13263B),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 3,
                   ),
                 ),
@@ -314,11 +315,17 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.save, color: Colors.white),
-                label: const Text('Opslaan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                label: const Text('Opslaan',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 3,
                 ),
               ),
@@ -329,4 +336,3 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
     );
   }
 }
-
