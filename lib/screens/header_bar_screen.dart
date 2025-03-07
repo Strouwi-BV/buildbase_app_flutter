@@ -75,12 +75,18 @@ class _HeaderBarState extends State<HeaderBar> {
     return PopupMenuButton<int>(
       icon: Row(
         children: [
-          _buildProfileAvatar(),
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.arrow_drop_down,
-            color: Colors.grey,
-          ),
+          // CircleAvatar(
+          //   backgroundColor: Colors.blue,
+          //   child: Text(
+          //     userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
+          //     style: const TextStyle(color: Colors.white),
+          //   ),
+          // ),
+          // const SizedBox(width: 4),
+          // const Icon(
+          //   Icons.arrow_drop_down,
+          //   color: Colors.grey,
+          // ),
         ],
       ),
       onSelected: (item) => _onMenuSelected(context, item),
@@ -92,12 +98,18 @@ class _HeaderBarState extends State<HeaderBar> {
             children: [
               Row(
                 children: [
-                  _buildProfileAvatar(),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.userName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  // CircleAvatar(
+                  //   backgroundColor: Colors.blue,
+                  //   child: Text(
+                  //     //userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
+                  //     style: const TextStyle(color: Colors.white),
+                  //   ),
+                  // ),
+                  // const SizedBox(width: 8),
+                  // Text(
+                  //   userName,
+                  //   style: const TextStyle(fontWeight: FontWeight.bold),
+                  // ),
                 ],
               ),
               const SizedBox(height: 4),
@@ -130,7 +142,6 @@ class _HeaderBarState extends State<HeaderBar> {
       ],
     );
   }
-
   Widget _buildProfileAvatar() {
     if (_profileImage != null) {
       return CircleAvatar(
