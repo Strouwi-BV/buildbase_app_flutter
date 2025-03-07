@@ -5,12 +5,14 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart';
+import 'package:buildbase_app_flutter/service/api_service.dart';
 
 class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
   final String userName;
   final bool showProfile;
 
-  const HeaderBar({Key? key, required this.userName, this.showProfile = true}) : super(key: key);
+  const HeaderBar({Key? key, required this.userName, this.showProfile = true})
+    : super(key: key);
 
   @override
   State<HeaderBar> createState() => _HeaderBarState();
@@ -20,7 +22,7 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HeaderBarState extends State<HeaderBar> {
-  File? _profileImage;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -29,13 +31,10 @@ class _HeaderBarState extends State<HeaderBar> {
   }
 
   Future<void> _loadProfileImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('profileImagePath');
-    if (imagePath != null) {
-      setState(() {
-        _profileImage = File(imagePath);
-      });
-    }
+    final avatarUrl = await ApiService().usersAvatarComplete();
+    setState(() {
+      _profileImageUrl = avatarUrl;
+    });
   }
 
   @override
@@ -50,22 +49,25 @@ class _HeaderBarState extends State<HeaderBar> {
         },
       ),
       centerTitle: false,
-      actions: widget.showProfile ? [
-        Row(
-          children: [
-            Text(
-              widget.userName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 8),
-            _buildProfileMenu(context),
-          ],
-        ),
-      ] : null,
+      actions:
+          widget.showProfile
+              ? [
+                Row(
+                  children: [
+                    Text(
+                      widget.userName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildProfileMenu(context),
+                  ],
+                ),
+              ]
+              : null,
       elevation: 4,
       shadowColor: Colors.black45,
     );
@@ -77,105 +79,117 @@ class _HeaderBarState extends State<HeaderBar> {
         children: [
           _buildProfileAvatar(),
           const SizedBox(width: 4),
-          const Icon(
-            Icons.arrow_drop_down,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.arrow_drop_down, color: Colors.grey),
         ],
       ),
       onSelected: (item) => _onMenuSelected(context, item),
-      itemBuilder: (context) => [
-        PopupMenuItem<int>(
-          value: 0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      itemBuilder:
+          (context) => [
+            PopupMenuItem<int>(
+              value: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfileAvatar(),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.userName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      _buildProfileAvatar(),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.userName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'tom.peeters@strouwi.be',
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              const Text('tom.peeters@strouwi.be',
-                  style: TextStyle(color: Colors.grey)),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem<int>(
-          value: 1,
-          child: Row(
-            children: const [
-              Icon(Icons.edit, color: Colors.black54),
-              SizedBox(width: 8),
-              Text('WIJZIG AFBEELDING'),
-            ],
-          ),
-        ),
-        PopupMenuItem<int>(
-          value: 2,
-          child: Row(
-            children: const [
-              Icon(Icons.logout, color: Colors.black54),
-              SizedBox(width: 8),
-              Text('AFMELDEN'),
-            ],
-          ),
-        ),
-      ],
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem<int>(
+              value: 1,
+              child: Row(
+                children: const [
+                  Icon(Icons.edit, color: Colors.black54),
+                  SizedBox(width: 8),
+                  Text('WIJZIG AFBEELDING'),
+                ],
+              ),
+            ),
+            PopupMenuItem<int>(
+              value: 2,
+              child: Row(
+                children: const [
+                  Icon(Icons.logout, color: Colors.black54),
+                  SizedBox(width: 8),
+                  Text('AFMELDEN'),
+                ],
+              ),
+            ),
+          ],
     );
   }
 
   Widget _buildProfileAvatar() {
-    if (_profileImage != null) {
-      return CircleAvatar(
-        backgroundImage: FileImage(_profileImage!),
-      );
+    if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+      return CircleAvatar(backgroundImage: NetworkImage(_profileImageUrl!));
     } else {
       return CircleAvatar(
         backgroundColor: Colors.blue,
         child: Text(
-          widget.userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
+          widget.userName
+              .split(' ')
+              .map((e) => e[0])
+              .take(2)
+              .join()
+              .toUpperCase(),
           style: const TextStyle(color: Colors.white),
         ),
       );
     }
   }
+}
 
-  void _onMenuSelected(BuildContext context, int item) {
-    switch (item) {
-      case 0:
-        Navigator.of(context).pushNamed('/profile/1');
-        break;
-      case 1:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (context) => ChangeImageScreen(onImageChanged: _onProfileImageChanged,)),
-        );
-        break;
-      case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logged out')),
-        );
-        break;
-    }
-  }
-
-  void _onProfileImageChanged() {
-    _loadProfileImage(); // Reload the image from storage
+void _onMenuSelected(BuildContext context, int item) {
+  switch (item) {
+    case 0:
+      Navigator.of(context).pushNamed('/profile/1');
+      break;
+    case 2:
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Logged out')));
+      break;
   }
 }
+/*void _onMenuSelected(BuildContext context, int item) {
+  switch (item) {
+    case 0:
+      Navigator.of(context).pushNamed('/profile/1');
+      break;
+    case 1:
+      _updateProfileImage();
+      break;
+    case 2:
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logged out')),
+      );
+      break;
+  }
+}
+
+void _updateProfileImage() async {
+  await _loadProfileImage(); // Profielfoto opnieuw ophalen van de server
+}*/
 
 class ChangeImageScreen extends StatefulWidget {
   final VoidCallback onImageChanged;
 
   const ChangeImageScreen({Key? key, required this.onImageChanged})
-      : super(key: key);
+    : super(key: key);
 
   @override
   _ChangeImageScreenState createState() => _ChangeImageScreenState();
@@ -229,7 +243,10 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Wijzig Profielfoto', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Wijzig Profielfoto',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
       ),
       body: Padding(
@@ -244,9 +261,14 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                   radius: 80,
                   backgroundColor: Colors.grey.shade300,
                   backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null
-                      ? const Icon(Icons.person, size: 80, color: Colors.white)
-                      : null,
+                  child:
+                      _image == null
+                          ? const Icon(
+                            Icons.person,
+                            size: 80,
+                            color: Colors.white,
+                          )
+                          : null,
                 ),
                 if (_image != null)
                   Positioned(
@@ -260,7 +282,11 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                           color: Colors.red,
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.delete, color: Colors.white, size: 24),
+                        child: const Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
@@ -273,11 +299,23 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.camera),
                   icon: const Icon(Icons.camera_alt, color: Colors.white),
-                  label: const Text('Maak foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  label: const Text(
+                    'Maak foto',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff13263B),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 3,
                   ),
                 ),
@@ -285,11 +323,23 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.gallery),
                   icon: const Icon(Icons.photo_library, color: Colors.white),
-                  label: const Text('Upload foto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  label: const Text(
+                    'Upload foto',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff13263B),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 3,
                   ),
                 ),
@@ -303,11 +353,23 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.save, color: Colors.white),
-                label: const Text('Opslaan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                label: const Text(
+                  'Opslaan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   elevation: 3,
                 ),
               ),
@@ -318,4 +380,3 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
     );
   }
 }
-
