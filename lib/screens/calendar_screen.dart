@@ -18,6 +18,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late EventController _eventController;
   String _currentViewType = 'Month';
   bool _isDialogShown = false;
+  late DateTime _currentMonth;
 
   @override
   void initState() {
@@ -26,6 +27,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ..addListener(() {
         setState(() {});
       });
+    _currentMonth = DateTime.now();
   }
 
   @override
@@ -65,8 +67,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     DateTime now = DateTime.now();
-    DateTime firstDay = DateTime(now.year, now.month, 1);
-    DateTime lastDay = DateTime(now.year, now.month + 1, 0);
+    DateTime firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
+    DateTime lastDay =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
 
     for (DateTime date = firstDay;
         date.isBefore(lastDay.add(Duration(days: 1)));
@@ -134,7 +137,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
         TimeOfDay selectedEndTime = TimeOfDay.now();
 
         return AlertDialog(
-          title: Text('Nieuw evenement'),
+          backgroundColor: Colors.white, // Example background color
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0), // Rounded corners
+          ),
+          title: Text(
+            'Nieuw evenement',
+            style: TextStyle(
+              color: const Color(0xff13263B), // Example title color
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -142,14 +155,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 controller: eventTextController,
                 decoration: InputDecoration(
                   hintText: 'Voer evenement details in',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(
+                      color: const Color(0xff13263B), // Example border color
+                      width: 2.0,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 8.0),
               TextField(
                 controller: noteTextController,
-                decoration: InputDecoration(hintText: 'Voer notitie in'),
+                decoration: InputDecoration(
+                  hintText: 'Voer notitie in',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(
+                      color: const Color(0xff13263B), // Example border color
+                      width: 2.0,
+                    ),
+                  ),
+                ),
               ),
-              TextButton(
+              SizedBox(height: 8.0),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff13263B), // Button color
+                  foregroundColor: Colors.white, // Text color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Button corners
+                  ),
+                ),
                 child: Text('Kies Datum'),
                 onPressed: () async {
                   DateTime? pickedDate = await showDatePicker(
@@ -157,6 +200,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     initialDate: selectedDate,
                     firstDate: DateTime(DateTime.now().year - 1),
                     lastDate: DateTime(DateTime.now().year + 1),
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: const Color(0xff13263B), // Header color
+                            onPrimary: Colors.white, // Header text color
+                            surface: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   if (pickedDate != null) {
                     setState(() {
@@ -165,12 +221,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   }
                 },
               ),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff13263B), // Button color
+                  foregroundColor: Colors.white, // Text color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Button corners
+                  ),
+                ),
                 child: Text('Kies Begintijd'),
                 onPressed: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
                     context: context,
                     initialTime: selectedStartTime,
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: const Color(0xff13263B), // Header color
+                            onPrimary: Colors.white, // Header text color
+                            surface: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   if (pickedTime != null) {
                     setState(() {
@@ -179,12 +255,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   }
                 },
               ),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff13263B), // Button color
+                  foregroundColor: Colors.white, // Text color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Button corners
+                  ),
+                ),
                 child: Text('Kies Eindtijd'),
                 onPressed: () async {
                   TimeOfDay? pickedTime = await showTimePicker(
                     context: context,
                     initialTime: selectedEndTime,
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: const Color(0xff13263B), // Header color
+                            onPrimary: Colors.white, // Header text color
+                            surface: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   if (pickedTime != null) {
                     setState(() {
@@ -197,13 +293,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           actions: [
             TextButton(
-              child: Text('Annuleren'),
+              child: Text(
+                'Annuleren',
+                style: TextStyle(
+                  color: const Color(0xff13263B), // Text color
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Opslaan'),
+              child: Text(
+                'Opslaan',
+                style: TextStyle(
+                  color: const Color(0xff13263B), // Text color
+                ),
+              ),
               onPressed: () async {
                 if (eventTextController.text.isNotEmpty) {
                   final prefs = await SharedPreferences.getInstance();
@@ -355,7 +461,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: HeaderBar(title: ''), // Use your custom HeaderBar
-      body: _getCurrentView(),
+      body: Column(
+        children: [
+          _buildViewTypeButtons(),
+          Expanded(child: _getCurrentView()),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createEvent(DateTime.now()),
         child: Icon(Icons.add, color: Colors.white),
@@ -364,10 +475,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Widget _buildViewTypeButtons() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildViewTypeButton('Month'),
+            _buildViewTypeButton('Week'),
+            _buildViewTypeButton('Day'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewTypeButton(String viewType) {
+    bool isSelected = _currentViewType == viewType;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: TextButton(
+        onPressed: () {
+          setState(() {
+            _currentViewType = viewType;
+          });
+        },
+        style: TextButton.styleFrom(
+          backgroundColor: isSelected ? Colors.blue : Colors.transparent,
+          foregroundColor: isSelected ? Colors.white : Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Text(viewType),
+        ),
+      ),
+    );
+  }
+
   Widget _getCurrentView() {
     switch (_currentViewType) {
       case 'Week':
         return WeekView(
+          headerStyle:
+              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
           controller: _eventController,
           onEventTap: (events, date) {
             _viewEventDetails(events.first);
@@ -375,6 +533,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         );
       case 'Day':
         return DayView(
+          headerStyle:
+              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
           controller: _eventController,
           onEventTap: (events, date) {
             _viewEventDetails(events.first);
@@ -391,33 +551,46 @@ class _CalendarScreenState extends State<CalendarScreen> {
               _createEvent(date);
             }
           },
+          headerStyle:
+              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
           headerBuilder: (date) {
-            // Return an empty container to remove the default header
             return Container(
+              decoration: BoxDecoration(color: Colors.blue[100]),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  PopupMenuButton<String>(
-                    onSelected: (viewType) {
-                      setState(() {
-                        _currentViewType = viewType;
-                      });
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                          value: 'Month', child: Text('Maand Kalender')),
-                      PopupMenuItem(
-                          value: 'Week', child: Text('Week Kalender')),
-                      PopupMenuItem(
-                          value: 'Day', child: Text('Dag Kalender')),
-                    ],
-                    icon: Icon(Icons.view_agenda),
-                  ),
+                  _buildMonthNavigationButton(Icons.chevron_left, -1),
+                  Text(DateFormat("MMMM yyyy").format(_currentMonth)),
+                  _buildMonthNavigationButton(Icons.chevron_right, 1),
                 ],
               ),
             );
           },
         );
     }
+  }
+
+  Widget _buildMonthNavigationButton(IconData icon, int monthChange) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: TextButton(
+        onPressed: () {
+          setState(() {
+            _currentMonth =
+                DateTime(_currentMonth.year, _currentMonth.month + monthChange);
+            _loadEvents();
+          });
+        },
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.black,
+          shape: const RoundedRectangleBorder(),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(icon),
+        ),
+      ),
+    );
   }
 }
