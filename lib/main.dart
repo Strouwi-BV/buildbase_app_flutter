@@ -7,17 +7,20 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
+import '/screens/edit_clockin_screen.dart'; // Importeer de EditClockInScreen
+import '/screens/event_details_screen.dart'; // Importeer de EventDetailsScreen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 //bib@bib.be
 //Test123
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -29,8 +32,7 @@ class MyApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   routes: [
-    GoRoute(path: '/', builder: (context, state) => ClockInScreen()),
-
+    GoRoute(path: '/', builder: (context, state) => const ClockInScreen()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
@@ -38,7 +40,7 @@ final GoRouter _router = GoRouter(
         return CalendarScreen(data: data ?? "No data here");
       },
     ),
-    GoRoute(path: '/clock-in', builder: (context, state) => ClockInScreen()),
+    GoRoute(path: '/clock-in', builder: (context, state) => const ClockInScreen()),
     GoRoute(
       path: '/profile/:userId',
       builder: (context, state) {
@@ -61,6 +63,55 @@ final GoRouter _router = GoRouter(
       path: '/forgot-password',
       builder: (context, state) {
         return const ForgotPasswordScreen();
+      },
+    ),
+    GoRoute(
+      path: '/event-details',
+      builder: (context, state) {
+        // Haal de data uit de state.extra
+        final data = state.extra as Map<String, dynamic>?;
+        if (data == null) {
+          return const Text("No data"); // Toon een error als er geen data is
+        }
+
+        // Extract de data
+        final formattedDate = data['formattedDate'] as String? ?? "";
+        final clockInTime = data['clockInTime'] as String? ?? "";
+        final clockOutTime = data['clockOutTime'] as String? ?? "";
+        final noteText = data['noteText'] as String? ?? "";
+        final location = data['location'] as String? ?? "";
+        // Contoleren of de date wel correct is doorgegeven, anders geven we een standaard waarde.
+        final date = data['date'] as DateTime;
+
+        return EventDetailsScreen(
+          formattedDate: formattedDate,
+          clockInTime: clockInTime,
+          clockOutTime: clockOutTime,
+          noteText: noteText,
+          location: location,
+          date: date,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/edit-clock-in',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        if (data == null) {
+          return const Text("No data");
+        }
+
+        final date = data['date'] as DateTime;
+        final currentClockIn = data['currentClockIn'] as String;
+        final currentClockOut = data['currentClockOut'] as String;
+        final currentNotes = data['currentNotes'] as String;
+
+        return EditClockInScreen(
+          date: date,
+          currentClockIn: currentClockIn,
+          currentClockOut: currentClockOut,
+          currentNotes: currentNotes,
+        );
       },
     ),
   ],
