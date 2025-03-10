@@ -30,35 +30,42 @@ class _RegistrationOverviewScreenState
     extends State<RegistrationOverviewScreen> {
   late String _currentTime;
   late Timer _timer;
+  late Stopwatch _stopwatch;
+  late String _elapsedTime;
 
   @override
   void initState() {
     super.initState();
-    // Now we only set an initial value, we will update this later.
     _currentTime = "00:00";
+    _elapsedTime = "00:00:00"; // Begin met 0 seconden
 
-    // Start a timer that updates the time every second.
+    // Start de stopwatch bij het laden van het scherm
+    _stopwatch = Stopwatch();
+    _stopwatch.start();
+
+    // Start een timer om elke seconde de verstreken tijd bij te werken
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
           _currentTime = TimeOfDay.now().format(context);
+          _elapsedTime = _formatElapsedTime(_stopwatch.elapsed);
         });
       }
     });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Now it is safe to use context here.
-    _currentTime = TimeOfDay.now().format(context);
-  }
-
-  @override
   void dispose() {
-    // Cancel the timer when the widget is disposed to prevent memory leaks.
     _timer.cancel();
     super.dispose();
+  }
+
+  String _formatElapsedTime(Duration duration) {
+    // Format de verstreken tijd als uren:minuten:seconden
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes % 60;
+    int seconds = duration.inSeconds % 60;
+    return "$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
   @override
@@ -151,6 +158,19 @@ class _RegistrationOverviewScreenState
                       SizedBox(width: 8),
                       Text('STOP', style: TextStyle(color: Colors.white)),
                     ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Voeg de verstreken tijd onderaan het scherm toe
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Text(
+                    'Verstreken tijd: $_elapsedTime',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
