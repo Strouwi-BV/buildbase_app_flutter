@@ -68,11 +68,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime firstDay = DateTime(now.year, now.month, 1);
     DateTime lastDay = DateTime(now.year, now.month + 1, 0);
 
-    for (
-      DateTime date = firstDay;
-      date.isBefore(lastDay.add(Duration(days: 1)));
-      date = date.add(Duration(days: 1))
-    ) {
+    for (DateTime date = firstDay;
+        date.isBefore(lastDay.add(Duration(days: 1)));
+        date = date.add(Duration(days: 1))) {
       String dayKey = DateFormat('yyyy-MM-dd').format(date);
       List<String> events = clockEvents[dayKey] ?? [];
       bool hasClockIn = events.any((e) => e.startsWith('Ingeklokt:'));
@@ -80,9 +78,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
       if (date.weekday == DateTime.saturday ||
           date.weekday == DateTime.sunday) {
+      if (date.weekday == DateTime.saturday ||
+          date.weekday == DateTime.sunday) {
         continue;
       }
 
+      if (date.isAfter(now) &&
+          DateFormat('yyyy-MM-dd').format(date) !=
+              DateFormat('yyyy-MM-dd').format(now)) {
       if (date.isAfter(now) &&
           DateFormat('yyyy-MM-dd').format(date) !=
               DateFormat('yyyy-MM-dd').format(now)) {
@@ -395,48 +398,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
             }
           },
           headerBuilder: (date) {
+            // Return an empty container to remove the default header
             return Container(
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.today),
-                    onPressed: () {
-                      // Gebruik de juiste methode om naar de huidige datum te springen
-                      _eventController.add(
-                        CalendarEventData(
-                          date: DateTime.now(),
-                          title: 'Today',
-                          startTime: DateTime.now(),
-                          endTime: DateTime.now().add(Duration(hours: 1)),
-                        ),
-                      );
-                    },
-                  ),
                   PopupMenuButton<String>(
                     onSelected: (viewType) {
                       setState(() {
                         _currentViewType = viewType;
                       });
                     },
-                    itemBuilder:
-                        (context) => [
-                          PopupMenuItem(
-                            value: 'Month',
-                            child: Text('Maand Kalender'),
-                          ),
-                          PopupMenuItem(
-                            value: 'Week',
-                            child: Text('Week Kalender'),
-                          ),
-                          PopupMenuItem(
-                            value: 'Day',
-                            child: Text('Dag Kalender'),
-                          ),
-                        ],
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                          value: 'Month', child: Text('Maand Kalender')),
+                      PopupMenuItem(
+                          value: 'Week', child: Text('Week Kalender')),
+                      PopupMenuItem(
+                          value: 'Day', child: Text('Dag Kalender')),
+                    ],
                     icon: Icon(Icons.view_agenda),
                   ),
                 ],
               ),
+            );
             );
           },
         );
