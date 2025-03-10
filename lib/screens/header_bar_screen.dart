@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,11 +9,8 @@ import 'package:path/path.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 
 class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
-  final String userName;
   final bool showProfile;
-
-  const HeaderBar({Key? key, required this.userName, this.showProfile = true})
-    : super(key: key);
+  const HeaderBar({Key? key, this.showProfile = true}) : super(key: key);
 
   @override
   State<HeaderBar> createState() => _HeaderBarState();
@@ -23,11 +21,26 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _HeaderBarState extends State<HeaderBar> {
   String? _profileImageUrl;
-
+  String _userName = 'User Name';
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final firstName = await ApiService().getUserFirstName();
+    final lastName = await ApiService().getUserLastName();
+    if (firstName == null || lastName == null) {
+      setState(() {
+        _userName = 'User Name';
+      });
+    } else {
+      setState(() {
+        _userName = '$firstName $lastName';
+      });
+    }
   }
 
   Future<void> _loadProfileImage() async {
@@ -42,10 +55,16 @@ class _HeaderBarState extends State<HeaderBar> {
     return AppBar(
       backgroundColor: const Color(0xff13263B),
       iconTheme: const IconThemeData(color: Colors.white),
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {
-          GoRouter.of(context).go('/menu');
+      leading: Builder(
+        builder: (context) {
+          return IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              GoRouter.of(
+                context,
+              ).go('/menu'); // Gebruik GoRouter voor navigatie
+            },
+          );
         },
       ),
       centerTitle: false,
@@ -54,14 +73,6 @@ class _HeaderBarState extends State<HeaderBar> {
               ? [
                 Row(
                   children: [
-                    Text(
-                      widget.userName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     const SizedBox(width: 8),
                     _buildProfileMenu(context),
                   ],
@@ -75,6 +86,7 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileMenu(BuildContext context) {
     return PopupMenuButton<int>(
+      /*optie om naar MenuAnchor te veranderen*/
       icon: Row(
         children: [
           _buildProfileAvatar(),
@@ -90,20 +102,23 @@ class _HeaderBarState extends State<HeaderBar> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       _buildProfileAvatar(),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.userName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      const SizedBox(width: 4),
+                      FutureBuilder<String?>(
+                        future: ApiService().getUserEmail(),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? 'Laden...',
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(color: Colors.grey),
+                          );
+                        },
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'tom.peeters@strouwi.be',
-                    style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
@@ -135,55 +150,36 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileAvatar() {
     if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      return CircleAvatar(backgroundImage: NetworkImage(_profileImageUrl!));
+      return CircleAvatar(
+        backgroundImage: Image.network(_profileImageUrl!).image,
+      );
     } else {
       return CircleAvatar(
         backgroundColor: Colors.blue,
         child: Text(
-          widget.userName
-              .split(' ')
-              .map((e) => e[0])
-              .take(2)
-              .join()
-              .toUpperCase(),
+          _userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
           style: const TextStyle(color: Colors.white),
         ),
       );
     }
   }
-}
 
-void _onMenuSelected(BuildContext context, int item) {
-  switch (item) {
-    case 0:
-      Navigator.of(context).pushNamed('/profile/1');
-      break;
-    case 2:
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Logged out')));
-      break;
+  void _onMenuSelected(BuildContext context, int item) {
+    switch (item) {
+      case 0:
+        GoRouter.of(context).go('/profile/1');
+        break;
+      case 1:
+        GoRouter.of(context).push('/change-image');
+        break;
+      case 2:
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Logged out')));
+        break;
+    }
   }
 }
-/*void _onMenuSelected(BuildContext context, int item) {
-  switch (item) {
-    case 0:
-      Navigator.of(context).pushNamed('/profile/1');
-      break;
-    case 1:
-      _updateProfileImage();
-      break;
-    case 2:
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logged out')),
-      );
-      break;
-  }
-}
-
-void _updateProfileImage() async {
-  await _loadProfileImage(); // Profielfoto opnieuw ophalen van de server
-}*/
 
 class ChangeImageScreen extends StatefulWidget {
   final VoidCallback onImageChanged;
@@ -241,7 +237,9 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
         backgroundColor: const Color(0xff13263B),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            GoRouter.of(context).pop(); // Gebruik GoRouter voor navigatie
+          },
         ),
         title: const Text(
           'Wijzig Profielfoto',
@@ -350,7 +348,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
               ElevatedButton.icon(
                 onPressed: () async {
                   await _saveImage(_image!);
-                  Navigator.pop(context);
+                  GoRouter.of(context).pop(); // Gebruik GoRouter voor navigatie
                 },
                 icon: const Icon(Icons.save, color: Colors.white),
                 label: const Text(

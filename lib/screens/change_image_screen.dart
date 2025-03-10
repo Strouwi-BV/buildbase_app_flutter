@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -41,10 +42,22 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
           ),
         ),
         backgroundColor: const Color(0xff13263B),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                if (GoRouter.of(context).canPop()) {
+                  GoRouter.of(context).pop(); // Gebruik de juiste context
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Er is niets om terug te gaan'),
+                    ),
+                  );
+                }
+              },
+            );
           },
         ),
       ),
@@ -52,20 +65,17 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: _image == null
-                ? const CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Colors.grey,
-                    child: Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Colors.white,
+            child:
+                _image == null
+                    ? const CircleAvatar(
+                      radius: 80,
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 80, color: Colors.white),
+                    )
+                    : CircleAvatar(
+                      radius: 80,
+                      backgroundImage: FileImage(_image!),
                     ),
-                  )
-                : CircleAvatar(
-                    radius: 80,
-                    backgroundImage: FileImage(_image!),
-                  ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -90,9 +100,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
               onPressed: _removeImage,
               icon: const Icon(Icons.delete),
               label: const Text(''),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             ),
           ],
         ],

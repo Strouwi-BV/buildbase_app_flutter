@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:buildbase_app_flutter/model/login_response.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -73,6 +72,18 @@ class ApiService {
     }
   }
 
+  Future<String?> getUserEmail() async {
+    return await _secureStorage.readData('email');
+  }
+
+  Future<String?> getUserFirstName() async {
+    return await _secureStorage.readData('firstName');
+  }
+
+  Future<String?> getUserLastName() async {
+    return await _secureStorage.readData('lastName');
+  }
+
   Future<String?> usersAvatarLink() async {
     final String? userId = await _secureStorage.readData('id');
     final String? organizationId = await _secureStorage.readData(
@@ -135,24 +146,18 @@ class ApiService {
   }
 
   Future<String?> usersAvatarComplete() async {
-    final url = Uri.parse(
-      '${await usersAvatarLink()}?timeStopCache=${DateTime.now() /*.millisecondsSinceEpoch*/}&${await usersAvatarSas()}&',
-    );
-    print(url);
-    /*try {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        return response.body;
-      } else {
-        return null;
-      }
-    } catch (e) {
+    final String? avatarLink = await usersAvatarLink();
+    print('avatarLink: $avatarLink');
+    if (await avatarLink == '') {
       return null;
-    }*/
+    }
+    final url =
+        '$avatarLink?timeStopCache=${DateTime.now() /*.millisecondsSinceEpoch*/}&${await usersAvatarSas()}&';
+    print('urll: $url');
+
+    return url;
   }
 }
-
 
 
 
