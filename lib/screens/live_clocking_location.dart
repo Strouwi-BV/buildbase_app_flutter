@@ -1,7 +1,8 @@
-import 'package:latlong2/latlong.dart' as latLng;
-import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
+import 'package:buildbase_app_flutter/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -19,47 +20,55 @@ class LiveClockingLocationScreen extends StatefulWidget {
 class _LiveClockingLocationScreenState extends State<LiveClockingLocationScreen> {
 
   final SecureStorageService secure = SecureStorageService();
+  final LocationService location = LocationService();
+
   Position? _currentLocation;
   LatLng? _currentCoordinates;
   double? latitude;
   double? longitude;
+  String? nearestAddress;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _getLocation();
+    location.requestPermission();
+    location.isLocationServiceEnabled();
+    getCurrentLocation();
   }
 
   //Method to receive location
-  Future<void> _getLocation() async {
-      bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-
-      if (!isLocationEnabled) {
-        await Geolocator.openAppSettings();
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever){
-          return;
-        }
-      }
-
-      _currentLocation = await Geolocator.getCurrentPosition();
-      print(_currentLocation);
-
-
+  Future<void> getCurrentLocation() async {
+    final position = await location.getCurrentLocation();
+    if (position != null) {
       setState(() {
-      latitude = _currentLocation!.latitude;
-      longitude = _currentLocation!.longitude;
-      _currentCoordinates = LatLng(latitude!, longitude!);
-      isLoading = false;
-        
+        latitude = position.latitude;
+        longitude = position.longitude;
+        _currentCoordinates = LatLng(latitude!, longitude!);
+        isLoading = false;
+        print('Location: ${position.latitude}, ${position.longitude}');
+      });
+      await getNearestAddress(position.latitude, position.longitude);
+    }
+  }
+
+  //Method to receive nearest address
+  Future<void> getNearestAddress(double latitude, double longitude) async {
+    final address = await location.getNearestAddress(latitude, longitude);
+
+    if (address != null) {
+      setState(() {
+        nearestAddress = address;
+        print(address);
+      });
+    } else {
+      setState(() {
+        nearestAddress = 'Address not found';
       });
     }
+  }
+
+    
 
 
   @override
@@ -73,7 +82,10 @@ class _LiveClockingLocationScreenState extends State<LiveClockingLocationScreen>
         : Padding(
           padding: const EdgeInsets.all(16.0),
           child: _currentCoordinates != null
-            ? ClipRRect(
+            ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 decoration: BoxDecoration(
@@ -116,7 +128,13 @@ class _LiveClockingLocationScreenState extends State<LiveClockingLocationScreen>
                       ],
                     ),
                   ),
+                ),
               ),
+              SizedBox(height: 20),
+              Text(
+                nearestAddress ?? 'Address loading...'
+              ),
+              ],
             )
             : const Center(
               child: Text('Location currently unavailable'),

@@ -1,4 +1,5 @@
 import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
@@ -15,76 +16,34 @@ class SettingsScreen extends StatefulWidget {
 }
 
   class _SettingsScreenState extends State<SettingsScreen> {
-    bool isLocationEnabled = false;
+
     final SecureStorageService secure = SecureStorageService();
+    final LocationService location = LocationService();
     final apiService = ApiService();
     Position? _currentLocation;
-    double? _latitude;
-    double? _longitude;
+    LatLng? _currentCoordinates;
+    double? latitude;
+    double? longitude;
+    bool locationEnabled = false;
 
     @override
     void initState() {
       super.initState();
-      _loadLocationPreference();
+      checkLocationServiceStatus();
+      // location.requestPermission();
+      // location.isLocationServiceEnabled();
     }
 
-    // Future<void> _getAvatar(String userId) async {
-    //   String? userId = await secure.readData('id');
-    //   // apiService.fetchUserAvatar(userId);
-    //   print("Get avatar called");
-      
-    // }
-
-    Future<void> _loadLocationPreference() async {
-      String? storedPref = await secure.readData('location_enabled');
+    Future<void> checkLocationServiceStatus() async {
+      bool isLocationEnabled = await location.isLocationServiceEnabled();
       setState(() {
-        isLocationEnabled = storedPref == 'true';
-      });
-
-      if (isLocationEnabled) {
-        _requestLocationPermission();
-      }
-    }
-
-    Future<void> _requestLocationPermission() async {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-    }
-
-    Future<void> _getLocation() async {
-      bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-
-      if (!isLocationEnabled) {
-        await Geolocator.openAppSettings();
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever){
-          return;
-        }
-      }
-
-      _currentLocation = await Geolocator.getCurrentPosition();
-      print(_currentLocation);
-
-      setState(() {
-        
+        locationEnabled = isLocationEnabled;
       });
     }
 
-    Future<void> _toggleLocation(bool geoVal) async {
-      setState(() {
-        isLocationEnabled = geoVal;
-      });
-      await secure.writeData('location_enabled', geoVal.toString());
-      if (geoVal) {
-        _requestLocationPermission();
-      }
+    Future<void> toggleLocationService() async {
+      await location.openLocationSettings();
+      await checkLocationServiceStatus();
     }
 
 
@@ -105,8 +64,10 @@ class SettingsScreen extends StatefulWidget {
                     style: TextStyle(fontSize: 16),
                   ),
                   Switch(
-                    value: isLocationEnabled,
-                    onChanged: _toggleLocation,
+                    value: locationEnabled,
+                    onChanged: (value) async {
+                      await toggleLocationService();
+                    },
                   ),
                 ],
               ),
@@ -122,7 +83,7 @@ class SettingsScreen extends StatefulWidget {
                     height: 10,
                   ),
                   ElevatedButton(
-                    onPressed: _getLocation, 
+                    onPressed: location.getCurrentLocation, 
                     child: const Text("Get location"),
                   ),
                 ],
