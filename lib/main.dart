@@ -11,6 +11,8 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
+import '/screens/edit_clockin_screen.dart'; // Importeer de EditClockInScreen
+import '/screens/event_details_screen.dart'; // Importeer de EventDetailsScreen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -27,6 +29,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -46,7 +49,10 @@ final GoRouter _router = GoRouter(
         return CalendarScreen(data: data ?? "No data here");
       },
     ),
-    GoRoute(path: '/clock-in', builder: (context, state) => ClockInScreen()),
+    GoRoute(
+      path: '/clock-in',
+      builder: (context, state) => const ClockInScreen(),
+    ),
     GoRoute(
       path: '/profile/:userId',
       builder: (context, state) {
