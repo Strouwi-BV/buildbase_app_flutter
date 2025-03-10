@@ -28,12 +28,12 @@ class SettingsScreen extends StatefulWidget {
       _loadLocationPreference();
     }
 
-    Future<void> _getAvatar(String userId) async {
-      String? userId = await secure.readData('id');
-      apiService.fetchUserAvatar(userId);
-      print("Get avatar called");
+    // Future<void> _getAvatar(String userId) async {
+    //   String? userId = await secure.readData('id');
+    //   // apiService.fetchUserAvatar(userId);
+    //   print("Get avatar called");
       
-    }
+    // }
 
     Future<void> _loadLocationPreference() async {
       String? storedPref = await secure.readData('location_enabled');
@@ -147,10 +147,10 @@ class SettingsScreen extends StatefulWidget {
                   SizedBox(
                     height: 10,
                   ),
-                  // ElevatedButton(
-                  //   onPressed: _getAvatar, 
-                  //   child: const Text("Get avatar"),
-                  // ),
+                  ElevatedButton(
+                    onPressed: apiService.getTempWork, 
+                    child: const Text("Get avatar"),
+                  ),
                 ],
               ),
             ],

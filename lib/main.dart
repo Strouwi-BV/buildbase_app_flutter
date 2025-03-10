@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/screens/live_clocking_location.dart';
 import 'package:buildbase_app_flutter/screens/menu_screen.dart';
 import 'package:buildbase_app_flutter/screens/login_screen.dart';
 import 'package:buildbase_app_flutter/screens/settings_screen.dart';
@@ -79,6 +80,12 @@ final GoRouter _router = GoRouter(
         return const SettingsScreen();
       },
     ),
+    GoRoute(
+      path: '/live-clocking-location',
+      builder: (context, state) {
+        return const LiveClockingLocationScreen();
+      },
+    ),
     
 
   ],
@@ -134,6 +141,15 @@ Widget buildMenuItems(BuildContext context) {
           title: const Text('Settings'),
           onTap: () {
             context.go('/settings');
+          },
+        ),
+        ListTile(
+          iconColor: Colors.white,
+          textColor: Colors.white,
+          leading: const Icon(Icons.login),
+          title: const Text('Live Clocking Location'),
+          onTap: () {
+            context.go('/live-clocking-location');
           },
         ),
       ],
