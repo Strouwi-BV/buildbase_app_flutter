@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '/screens/change_image_screen.dart';
+import 'change_image_screen.dart';
 
 class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -23,7 +23,7 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: const Icon(Icons.menu),
         onPressed: () {
-          GoRouter.of(context).go('/menu'); // Navigeer naar het menu
+          GoRouter.of(context).go('/menu'); // Navigate to the menu
         },
       ),
       actions: <Widget>[_buildProfileMenu(context)],
@@ -32,11 +32,7 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-Widget _buildProfileMenu(BuildContext context) {
+  Widget _buildProfileMenu(BuildContext context) {
   return PopupMenuButton<int>(
     icon: Row(
       children: const [
@@ -46,57 +42,56 @@ Widget _buildProfileMenu(BuildContext context) {
       ],
     ),
     onSelected: (item) => _onMenuSelected(context, item),
-    itemBuilder:
-        (context) => [
-          PopupMenuItem<int>(
-            value: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        'https://via.placeholder.com/150',
-                      ), // Placeholder image
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Tom Peeters',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+    itemBuilder: (context) => [
+      PopupMenuItem<int>(
+        value: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                CircleAvatar(
+                  backgroundImage: NetworkImage(
+                    'https://via.placeholder.com/150',
+                  ), // Placeholder image
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'tom.peeters@strouwi.be',
-                  style: TextStyle(color: Colors.grey),
+                SizedBox(width: 8),
+                Text(
+                  'Tom Peeters',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-          ),
-          const PopupMenuDivider(),
-          PopupMenuItem<int>(
-            value: 1,
-            child: Row(
-              children: const [
-                Icon(Icons.edit, color: Colors.black54),
-                SizedBox(width: 8),
-                Text('WIJZIG AFBEELDING'),
-              ],
+            const SizedBox(height: 4),
+            const Text(
+              'tom.peeters@strouwi.be',
+              style: TextStyle(color: Colors.grey),
             ),
-          ),
-          PopupMenuItem<int>(
-            value: 2,
-            child: Row(
-              children: const [
-                Icon(Icons.logout, color: Colors.black54),
-                SizedBox(width: 8),
-                Text('AFMELDEN'),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<int>(
+        value: 1,
+        child: Row(
+          children: const [
+            Icon(Icons.edit, color: Colors.black54),
+            SizedBox(width: 8),
+            Text('WIJZIG AFBEELDING'),
+          ],
+        ),
+      ),
+      PopupMenuItem<int>(
+        value: 2,
+        child: Row(
+          children: const [
+            Icon(Icons.logout, color: Colors.black54),
+            SizedBox(width: 8),
+            Text('AFMELDEN'),
+          ],
+        ),
+      ),
+    ],
   );
 }
 
@@ -121,5 +116,6 @@ void _onMenuSelected(BuildContext context, int item) {
   }
 }
 
-@override
-Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
