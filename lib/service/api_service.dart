@@ -157,6 +157,10 @@ class ApiService {
 
     return url;
   }
+
+  Future<void> logout() async {
+    await _secureStorage.deleteAllData();
+  }
 }
 
 

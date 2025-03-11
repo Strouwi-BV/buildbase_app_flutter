@@ -1,11 +1,5 @@
-import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path/path.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 
 class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
@@ -164,7 +158,7 @@ class _HeaderBarState extends State<HeaderBar> {
     }
   }
 
-  void _onMenuSelected(BuildContext context, int item) {
+  Future<void> _onMenuSelected(BuildContext context, int item) async {
     switch (item) {
       case 0:
         GoRouter.of(context).go('/profile/1');
@@ -173,9 +167,8 @@ class _HeaderBarState extends State<HeaderBar> {
         GoRouter.of(context).push('/change-image');
         break;
       case 2:
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Logged out')));
+        await ApiService().logout();
+        GoRouter.of(context).push('/log-in');
         break;
     }
   }
