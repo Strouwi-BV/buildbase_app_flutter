@@ -1,9 +1,9 @@
+import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'dart:io';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,8 +18,24 @@ class ChangeImageScreen extends StatefulWidget {
 }
 
 class _ChangeImageScreenState extends State<ChangeImageScreen> {
-  File? _image;
+  File? _image; //moet weg
+  String? _avatarUrl;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    final avatarUrl = await ApiService().usersAvatarComplete();
+    if (avatarUrl != null) {
+      setState(() {
+        _avatarUrl = avatarUrl;
+      });
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
@@ -40,20 +56,10 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
   }
 
   void _removeImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('profileImagePath');
-    if (imagePath != null) {
-      final file = File(imagePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      await prefs.remove('profileImagePath');
-    }
-
+    await ApiService().deleteAvatar();
     setState(() {
-      _image = null;
+      _avatarUrl = null;
     });
-    widget.onImageChanged();
   }
 
   @override
@@ -64,7 +70,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            GoRouter.of(context).pop(); // Gebruik GoRouter voor navigatie
+            GoRouter.of(context).pop();
           },
         ),
         title: const Text(
@@ -84,9 +90,10 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                 CircleAvatar(
                   radius: 80,
                   backgroundColor: Colors.grey.shade300,
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
+                  backgroundImage:
+                      _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
                   child:
-                      _image == null
+                      _avatarUrl == null
                           ? const Icon(
                             Icons.person,
                             size: 80,
@@ -94,7 +101,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                           )
                           : null,
                 ),
-                if (_image != null)
+                if (_avatarUrl != null)
                   Positioned(
                     right: 8,
                     top: 8,
@@ -174,7 +181,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
               ElevatedButton.icon(
                 onPressed: () async {
                   await _saveImage(_image!);
-                  GoRouter.of(context).pop(); // Gebruik GoRouter voor navigatie
+                  GoRouter.of(context).pop();
                 },
                 icon: const Icon(Icons.save, color: Colors.white),
                 label: const Text(

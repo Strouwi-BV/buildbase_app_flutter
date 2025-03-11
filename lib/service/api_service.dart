@@ -115,6 +115,31 @@ class ApiService {
     }
   }
 
+  Future<void> deleteAvatar() async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    if (userId == null || organizationId == null || token == null) {
+      throw Exception("User ID, Organization ID of Token ontbreekt.");
+    }
+
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/avatar');
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+      'Authorization': 'Bearer $token',
+    };
+
+    final http.Response response = await http.delete(url, headers: headers);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception("Fout bij verwijderen avatar: ${response.body}");
+    }
+  }
+
   Future<String?> usersAvatarSas() async {
     final String? organizationId = await _secureStorage.readData(
       'organizationId',

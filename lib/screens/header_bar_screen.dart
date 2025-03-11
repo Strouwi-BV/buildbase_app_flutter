@@ -54,9 +54,7 @@ class _HeaderBarState extends State<HeaderBar> {
           return IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              GoRouter.of(
-                context,
-              ).go('/menu'); // Gebruik GoRouter voor navigatie
+              GoRouter.of(context).go('/menu');
             },
           );
         },
