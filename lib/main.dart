@@ -48,7 +48,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/change-image',
-      builder: (context, state) => ChangeImageScreen(),
+      builder: (context, state) => ChangeImageScreen(onImageChanged: () {}),
     ),
     GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
     GoRoute(
