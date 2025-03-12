@@ -25,13 +25,15 @@ class SettingsScreen extends StatefulWidget {
     double? latitude;
     double? longitude;
     bool locationEnabled = false;
+    String? nearestAddress;
+    bool isLoading = true;
 
     @override
     void initState() {
       super.initState();
       checkLocationServiceStatus();
-      // location.requestPermission();
-      // location.isLocationServiceEnabled();
+      location.requestPermission();
+      location.isLocationServiceEnabled();
     }
 
     Future<void> checkLocationServiceStatus() async {
@@ -44,7 +46,39 @@ class SettingsScreen extends StatefulWidget {
     Future<void> toggleLocationService() async {
       await location.openLocationSettings();
       await checkLocationServiceStatus();
+      getCurrentLocation();
     }
+
+    //Method to receive location
+  Future<void> getCurrentLocation() async {
+    final position = await location.getCurrentLocation();
+    if (position != null) {
+      setState(() {
+        latitude = position.latitude;
+        longitude = position.longitude;
+        _currentCoordinates = LatLng(latitude!, longitude!);
+        isLoading = false;
+        print('Location: ${position.latitude}, ${position.longitude}');
+      });
+      await getNearestAddress(position.latitude, position.longitude);
+    }
+  }
+
+  //Method to receive nearest address
+  Future<void> getNearestAddress(double latitude, double longitude) async {
+    final address = await location.getNearestAddress(latitude, longitude);
+
+    if (address != null) {
+      setState(() {
+        nearestAddress = address;
+        print(address);
+      });
+    } else {
+      setState(() {
+        nearestAddress = 'Address not found';
+      });
+    }
+  }
 
 
     @override
@@ -96,7 +130,7 @@ class SettingsScreen extends StatefulWidget {
                     height: 10,
                   ),
                   Text(
-                    _currentLocation.toString() ?? "No location yet"
+                    nearestAddress ?? "No location yet"
                   ),
                 ],
               ),
