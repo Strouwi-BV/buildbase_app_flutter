@@ -122,6 +122,7 @@ class ApiService {
     }
   }
 
+//GET /fileExport/blob/sas
   Future<String?> usersAvatarSas() async {
     final String? organizationId = await _secureStorage.readData(
       'organizationId',
@@ -152,6 +153,8 @@ class ApiService {
     }
   }
 
+
+  //Create full link to get Avatar
   Future<String?> usersAvatarComplete() async {
     final String? avatarLink = await usersAvatarLink();
     print('avatarLink: $avatarLink');
@@ -229,4 +232,7 @@ class ApiService {
         return null;
     }
   }
+
+  //Get /clients
+  
 }

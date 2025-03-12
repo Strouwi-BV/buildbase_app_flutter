@@ -1,5 +1,5 @@
 import 'package:buildbase_app_flutter/model/clocking_location.dart';
-import 'package:buildbase_app_flutter/model/time_detail.dart';
+import 'package:buildbase_app_flutter/model/detailed_timestamp.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 
@@ -10,8 +10,8 @@ class ClockingTempWorkResponse {
   final String clockingType;
   final String day;
   final String comment;
-  final TimeDetail startTime;
-  final TimeDetail endTime;
+  final DetailedTimeStamp startTime;
+  final DetailedTimeStamp endTime;
   final String clientId;
   final String projectId;
   final bool breakTime;
@@ -38,8 +38,8 @@ class ClockingTempWorkResponse {
       clockingType: json['clockingType'], 
       day: json['day'], 
       comment: json['comment'], 
-      startTime: TimeDetail.fromJson(json['startTime']), 
-      endTime: TimeDetail.fromJson(json['endTime']), 
+      startTime: DetailedTimeStamp.fromJson(json['startTime']), 
+      endTime: DetailedTimeStamp.fromJson(json['endTime']), 
       clientId: json['clientId'], 
       projectId: json['projectId'], 
       breakTime: json['breakTime'], 

@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       ),
       GoRoute(
         path: '/change-image',
-        builder: (context, state) => ChangeImageScreen(),
+        builder: (context, state) => ChangeImageScreen(onImageChanged: () {}),
       ),
       GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
       GoRoute(
