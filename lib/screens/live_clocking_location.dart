@@ -74,7 +74,7 @@ class _LiveClockingLocationScreenState extends State<LiveClockingLocationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: 'Live Clocking Location'),
+      appBar: const HeaderBar(),
       body: isLoading 
         ? const Center(
           child: CircularProgressIndicator()

@@ -84,7 +84,7 @@ class SettingsScreen extends StatefulWidget {
     @override
     Widget build(BuildContext context) {
       return Scaffold(
-        appBar: const HeaderBar(title: 'Settings'),
+        appBar: const HeaderBar(),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
