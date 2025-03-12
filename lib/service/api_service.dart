@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:buildbase_app_flutter/model/clocking_temp_work_response.dart';
 import 'package:buildbase_app_flutter/model/login_response.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,6 +14,11 @@ class ApiService {
   final SecureStorageService _secureStorage = SecureStorageService();
   final String _baseUrl = dotenv.env['API_BASE_URL'] ?? '';
 
+  static final _startTimeKey = 'startTime';
+  static final _endTimeKey = 'endTime';
+  static final _fullResponseKey = '';
+
+  //POST /users/login
   Future<LoginResponse?> login(String email, String password) async {
     final url = Uri.parse('$_baseUrl/users/login');
     final headers = {'Content-Type': 'application/hal+json'};
@@ -161,10 +168,6 @@ class ApiService {
   Future<void> logout() async {
     await _secureStorage.deleteAllData();
   }
-}
-
-
-
 
 ///baseurl/users/{userId}/avatar
 ///Request Method:GET
@@ -176,13 +179,54 @@ class ApiService {
 ///sv=2023-11-03&st=2025-03-07T14%3A57%3A12Z&se=2025-03-07T16%3A02%3A12Z&sr=c&sp=r&sig=p52fdNN54gGZqdSRrvbsAP4p5CZXuL3F9vdeyMX%2B1VA%3D
 ///&
 
+  //GET /clockings/temp-work
+  Future<ClockingTempWorkResponse?> getTempWork() async {
+
+    String? token = await _secureStorage.readData('token');
 
 
+    final url = Uri.parse('$_baseUrl/clockings/temp-work');
+    final headers = {
+      'Authorization' : 'Bearer $token',
+    };
 
 
+    try {
 
+      final response = await http.get(url, headers: headers);
+      print('In tempwork try');
+      print('Statuscode: ${response.statusCode}');
 
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final tempWorkClockIn = ClockingTempWorkResponse.fromJson(jsonResponse);
+        final String startTimeJson = json.encode(tempWorkClockIn.startTime.toJson());
+        final String endTimeJson = json.encode(tempWorkClockIn.endTime);
+        final String locationJson = json.encode(tempWorkClockIn.clockingLocation);
+        final String fullResponse = json.encode(tempWorkClockIn.toJson());
 
+        await _secureStorage.writeData('id', tempWorkClockIn.id);
+        await _secureStorage.writeData('userId', tempWorkClockIn.userId);
+        await _secureStorage.writeData('clockingType', tempWorkClockIn.clockingType);
+        await _secureStorage.writeData('day', tempWorkClockIn.day);
+        await _secureStorage.writeData('comment', tempWorkClockIn.comment);
+        await _secureStorage.writeData('startTime', startTimeJson);
+        await _secureStorage.writeData('endTime', endTimeJson);
+        await _secureStorage.writeData('clientId', tempWorkClockIn.clientId);
+        await _secureStorage.writeData('projectId', tempWorkClockIn.projectId);
+        await _secureStorage.writeData('breakTime', tempWorkClockIn.breakTime.toString());
+        await _secureStorage.writeData('clockingLocation', locationJson);
 
+        await _secureStorage.writeData('clockingTempWorkResponse', fullResponse);
 
-
+        return tempWorkClockIn;
+      } else {
+        print('Failed to fetch temp work data');
+        return null;
+      }
+    } catch (e) {
+        print('Error fetching data $e');
+        return null;
+    }
+  }
+}
