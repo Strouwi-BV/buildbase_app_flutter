@@ -11,6 +11,7 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
 }
 
 class _HeaderBarState extends State<HeaderBar> {
@@ -171,3 +172,4 @@ class _HeaderBarState extends State<HeaderBar> {
     }
   }
 }
+

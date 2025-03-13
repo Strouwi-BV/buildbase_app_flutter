@@ -42,6 +42,14 @@ dependencies:
   path: ^1.9.0
   email_validator: "^2.1.17"
   http_parser: ^4.1.2
+  geolocator: ^13.0.2
+  flutter_map: ^8.1.0
+  latlong2: ^0.9.1
+  json_annotation: ^4.9.0
+  geocoding: ^2.1.1
+  permission_handler: ^10.2.0
+  
+
 
 dev_dependencies:
   flutter_test:

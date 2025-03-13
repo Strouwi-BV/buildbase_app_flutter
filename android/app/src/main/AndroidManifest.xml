@@ -3,6 +3,8 @@
         android:label="buildbase_app_flutter"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+        <user-permission adnroid:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
