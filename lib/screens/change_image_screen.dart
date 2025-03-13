@@ -2,24 +2,18 @@ import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangeImageScreen extends StatefulWidget {
-  final VoidCallback onImageChanged;
-
-  const ChangeImageScreen({Key? key, required this.onImageChanged})
-    : super(key: key);
+  const ChangeImageScreen({Key? key}) : super(key: key);
 
   @override
   _ChangeImageScreenState createState() => _ChangeImageScreenState();
 }
 
 class _ChangeImageScreenState extends State<ChangeImageScreen> {
-  File? _image; //moet weg
   String? _avatarUrl;
+  File? _newImage;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -38,27 +32,28 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
+    final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
       setState(() {
-        _image = File(pickedFile.path);
+        _newImage = imageFile;
       });
     }
   }
 
-  Future<void> _saveImage(File image) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final fileName = basename(image.path);
-    final savedImage = await image.copy('${appDir.path}/$fileName');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('profileImagePath', savedImage.path);
-    widget.onImageChanged();
+  Future<void> _postImage() async {
+    await ApiService().usersAvatarPost(_newImage);
+    setState(() {
+      _newImage = null;
+    });
+    _loadAvatar();
   }
 
   void _removeImage() async {
     await ApiService().deleteAvatar();
     setState(() {
       _avatarUrl = null;
+      _newImage = null;
     });
   }
 
@@ -91,9 +86,13 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                   radius: 80,
                   backgroundColor: Colors.grey.shade300,
                   backgroundImage:
-                      _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
+                      _newImage != null
+                          ? FileImage(_newImage!)
+                          : (_avatarUrl != null
+                              ? NetworkImage(_avatarUrl!)
+                              : null),
                   child:
-                      _avatarUrl == null
+                      (_avatarUrl == null && _newImage == null)
                           ? const Icon(
                             Icons.person,
                             size: 80,
@@ -101,7 +100,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                           )
                           : null,
                 ),
-                if (_avatarUrl != null)
+                if (_avatarUrl != null && _newImage == null)
                   Positioned(
                     right: 8,
                     top: 8,
@@ -129,7 +128,11 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt, color: Colors.white),
+                  icon: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                   label: const Text(
                     'Maak foto',
                     style: TextStyle(
@@ -147,13 +150,18 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 3,
+                    elevation: 5, // Subtiele schaduw
+                    shadowColor: Colors.black.withOpacity(0.3),
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 20), // Ruimte tussen de knoppen
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library, color: Colors.white),
+                  icon: const Icon(
+                    Icons.photo_library,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                   label: const Text(
                     'Upload foto',
                     style: TextStyle(
@@ -171,38 +179,77 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 3,
+                    elevation: 5, // Subtiele schaduw
+                    shadowColor: Colors.black.withOpacity(0.3),
                   ),
                 ),
               ],
             ),
-            if (_image != null) ...[
+            if (_newImage != null) ...[
               const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await _saveImage(_image!);
-                  GoRouter.of(context).pop();
-                },
-                icon: const Icon(Icons.save, color: Colors.white),
-                label: const Text(
-                  'Opslaan',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      _postImage();
+                    },
+                    icon: const Icon(Icons.save, color: Colors.white, size: 24),
+                    label: const Text(
+                      'Opslaan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 5,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                    ),
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
+                  const SizedBox(width: 20),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      setState(() {
+                        _newImage = null;
+                      });
+                    },
+                    icon: const Icon(
+                      Icons.cancel,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    label: const Text(
+                      'Annuleren',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 5, // Subtiele schaduw
+                      shadowColor: Colors.black.withOpacity(0.3),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 3,
-                ),
+                ],
               ),
             ],
           ],

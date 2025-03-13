@@ -29,3 +29,22 @@ class MenuScreen extends StatelessWidget {
     );
   }
 }
+  /*
+    final ImagePicker _picker = ImagePicker();
+
+  
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    print('hello');
+    final XFile? pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
+
+      final uploadedAvatarUrl = await ApiService().usersAvatarPost(imageFile);
+
+      if (uploadedAvatarUrl != null) {
+        setState(() {
+          _avatarUrl = uploadedAvatarUrl;
+        });
+      }
+    }
+  }*/

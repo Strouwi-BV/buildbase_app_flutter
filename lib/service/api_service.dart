@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
+import 'dart:io';
 import 'package:buildbase_app_flutter/model/login_response.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -183,31 +185,47 @@ class ApiService {
     return url;
   }
 
+  Future<String?> usersAvatarPost(File? image) async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    if (userId == null || organizationId == null || token == null) {
+      throw Exception("User ID, Organization ID of Token ontbreekt.");
+    }
+    if (image == null) {
+      throw Exception("Geen afbeelding geselecteerd.");
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/avatar');
+
+    var request =
+        http.MultipartRequest('POST', url)
+          ..headers.addAll({
+            'Authorization': 'Bearer $token',
+            'Organization': organizationId,
+          })
+          ..files.add(
+            await http.MultipartFile.fromPath(
+              'file',
+              image.path,
+              contentType: MediaType('image', 'webp'),
+            ),
+          );
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      print("Avatar succesvol geüpload!");
+    } else {
+      throw Exception("Fout bij uploaden van avatar: ${response.statusCode}");
+    }
+    return null;
+  }
+
   Future<void> logout() async {
     await _secureStorage.deleteAllData();
   }
 }
-
-
-
-
-///baseurl/users/{userId}/avatar
-///Request Method:GET
-///GET /fileExport/blob/sas
-///https://sablobstoragedevnortheu.blob.core.windows.net/67c858c483fe595f6082632e/users/67c858c5f034282c4b051bf4/avatar.jpg
-///?
-///timeStopCache=1741359729444
-///&
-///sv=2023-11-03&st=2025-03-07T14%3A57%3A12Z&se=2025-03-07T16%3A02%3A12Z&sr=c&sp=r&sig=p52fdNN54gGZqdSRrvbsAP4p5CZXuL3F9vdeyMX%2B1VA%3D
-///&
-
-
-
-
-
-
-
-
-
-
-
