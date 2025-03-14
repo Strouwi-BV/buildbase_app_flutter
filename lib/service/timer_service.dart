@@ -5,8 +5,15 @@ class TimerProvider with ChangeNotifier {
   Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
   String _elapsedTime = "00:00:00";
+  String _startTime = ""; // Voeg een veld toe om de starttijd op te slaan
 
   String get elapsedTime => _elapsedTime;
+  String get startTime => _startTime; // Getter voor startTime
+
+  void setStartTime(String startTime) {
+    _startTime = startTime; // Methode om de starttijd in te stellen
+    notifyListeners();
+  }
 
   void startTimer() {
     _stopwatch.start();

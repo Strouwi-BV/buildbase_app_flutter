@@ -64,62 +64,62 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final timerProvider = Provider.of<TimerProvider>(context);
+Widget build(BuildContext context) {
+  final timerProvider = Provider.of<TimerProvider>(context);
 
-    return Scaffold(
-      appBar: const HeaderBar(userName: 'Tom Peeters'),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Registratie',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Row(
-                  children: [
-                    const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text('Terug naar ${widget.date}',
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.grey)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
+  return Scaffold(
+    appBar: const HeaderBar(userName: 'Tom Peeters'),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Registratie',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Row(
                 children: [
-                  Expanded(
-                      child: _buildUnderlinedField(
-                          'Van Dag *',
-                          _formatDate(widget.startDate),
-                          Icons.calendar_today)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                      child: _buildUnderlinedField(
-                          'Van Uur *', widget.startTime, Icons.access_time)),
+                  const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text('Terug naar ${widget.date}',
+                      style: const TextStyle(
+                          fontSize: 14, color: Colors.grey)),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                      child: _buildUnderlinedField(
-                          'Tot Dag *',
-                          _formatDate(widget.endDate),
-                          Icons.calendar_today)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                      child: _buildUnderlinedField(
-                          'Tot Uur *', _currentTime, Icons.access_time)),
-                ],
-              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                    child: _buildUnderlinedField(
+                        'Van Dag *',
+                        _formatDate(widget.startDate),
+                        Icons.calendar_today)),
+                const SizedBox(width: 16),
+                Expanded(
+                    child: _buildUnderlinedField(
+                        'Van Uur *', timerProvider.startTime, Icons.access_time)), // Gebruik de opgeslagen starttijd
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                    child: _buildUnderlinedField(
+                        'Tot Dag *',
+                        _formatDate(widget.endDate),
+                        Icons.calendar_today)),
+                const SizedBox(width: 16),
+                Expanded(
+                    child: _buildUnderlinedField(
+                        'Tot Uur *', _currentTime, Icons.access_time)),
+              ],
+            ),
               const SizedBox(height: 24),
               _buildDropdownField('Klantnaam *', widget.clientName,
                   showIcon: false),

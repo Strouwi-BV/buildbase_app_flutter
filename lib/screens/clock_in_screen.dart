@@ -22,10 +22,13 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
  void _startClockIn() {
   final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+  final startTime = TimeOfDay.now().format(context);
+
+  timerProvider.setStartTime(startTime); // Sla de starttijd op
   timerProvider.startTimer(); // Start de timer
 
   setState(() {
-    _startTime = TimeOfDay.now().format(context);
+    _startTime = startTime;
     _endTime = TimeOfDay.now().format(context);
   });
 
@@ -33,13 +36,12 @@ class _ClockInScreenState extends State<ClockInScreen> {
   context.go(
     '/registration-overview',
     extra: {
-      'startTime': _startTime,
+      'startDate': DateTime.now().toIso8601String(),
+      'startTime': startTime, // Gebruik de opgeslagen starttijd
+      'endDate': DateTime.now().toIso8601String(),
       'clientName': _selectedClient,
       'projectName': _selectedProject,
-      'startDate': DateTime.now().toIso8601String(),
-      'endDate': DateTime.now().toIso8601String(),
-      'endTime': _endTime,
-      'date': '27/02/2025' // Dit kan dynamisch gemaakt worden
+      'date': '27/02/2025', // Vervang dit door dynamische data
     },
   );
 }
