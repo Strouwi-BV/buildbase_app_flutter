@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/clocking_temp_work_response.dart';
 import 'package:buildbase_app_flutter/model/login_response.dart';
+import 'package:buildbase_app_flutter/model/project_model.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -39,10 +41,7 @@ class ApiService {
         await _secureStorage.writeData('firstName', loginResponse.firstName);
         await _secureStorage.writeData('lastName', loginResponse.lastName);
         await _secureStorage.writeData('email', loginResponse.email);
-        await _secureStorage.writeData(
-          'organizationId',
-          loginResponse.organizationId,
-        );
+        await _secureStorage.writeData('organizationId', loginResponse.organizationId);
 
         print('Login successful');
         return loginResponse;
@@ -233,6 +232,51 @@ class ApiService {
     }
   }
 
-  //Get /clients
+  //Get /clients/active/user
+  Future<List<ClientResponse>> getClients() async {
+
+    String? token = await _secureStorage.readData('token');
+    String? organization = await _secureStorage.readData('organizationId');
+    String? userId = await _secureStorage.readData('id');
+
+    final url = Uri.parse('$_baseUrl/cients/active/user');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Organization': '$organization'
+    };
+
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        print('Response is 200 client');
+        return data.map((json) => ClientResponse.fromJson(json)).toList();
+      } else {
+        throw Exception("Failed to load clients");
+      }
+    } catch (e) {
+      print('Error fetching clients: $e');
+      throw Exception(e);
+    }
+  }
+
+  // GET /clients/{clientId}/projects
+  Future <List<ProjectModel>> getProjects(String clientId) async {
+
+    final url = Uri.parse('$_baseUrl/{clientId}/projects');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => ProjectModel.fromJson(json)).toList();
+    } else {
+      throw Exception("Failed to load projects");
+    }
+
+  }
   
 }

@@ -3,7 +3,7 @@ import 'package:buildbase_app_flutter/model/address_model.dart';
 import 'package:buildbase_app_flutter/model/contact_model.dart';
 import 'package:buildbase_app_flutter/model/project_model.dart';
 
-class ClientModel {
+class ClientResponse {
   final String id;
   final String organizationId;
   final String clientName;
@@ -18,7 +18,7 @@ class ClientModel {
   final String vat;
   final String functionalId;
 
-  ClientModel({
+  ClientResponse({
     required this.id,
     required this.organizationId,
     required this.clientName,
@@ -34,8 +34,8 @@ class ClientModel {
     required this.functionalId
   });
 
-  factory ClientModel.fromJson(Map<String, dynamic> json) {
-    return ClientModel(
+  factory ClientResponse.fromJson(Map<String, dynamic> json) {
+    return ClientResponse(
       id: json['id'], 
       organizationId: json['organizationId'], 
       clientName: json['clientName'], 

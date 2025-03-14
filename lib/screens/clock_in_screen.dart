@@ -1,3 +1,8 @@
+import 'package:buildbase_app_flutter/model/client_response.dart';
+import 'package:buildbase_app_flutter/model/project_model.dart';
+import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'header_bar_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -10,12 +15,64 @@ class ClockInScreen extends StatefulWidget {
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
+  final SecureStorageService secure = SecureStorageService();
+  final LocationService location = LocationService();
+  final apiService = ApiService();
+  
   late String _startTime;
   late String _endTime;
-  String _selectedClient = 'Strouwi'; // Default values
-  String _selectedProject = 'Buildbase App';
-  List<String> _clientNames = ['Strouwi', 'Client 2', 'Client 3'];
-  List<String> _projectNames = ['Buildbase App', 'Project 2', 'Project 3'];
+  List<ClientResponse> clients = [];
+  List<ProjectModel> projects = [];
+
+  ClientResponse? selectedClient;
+  ProjectModel? selectedProject;
+  bool isLoadingProjects = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClients();
+
+  }
+
+  Future<void> _loadClients() async {
+    List<ClientResponse> fetchedClients = await apiService.getClients();
+    setState(() {
+      clients = fetchedClients;
+    });
+  }
+
+  Future<void> _loadProjects(ClientResponse client) async {
+    setState(() {
+      isLoadingProjects = true;
+      selectedProject = null;
+      projects = [];
+    });
+
+    List<ProjectModel> fetchedProjects = await apiService.getProjects(client.id);
+
+    setState(() {
+      projects = fetchedProjects;
+      isLoadingProjects = false;
+    });
+  }
+
+  void _onClientSelected(ClientResponse? client) {
+    if (client != null) {
+      setState(() {
+        selectedClient = client;
+        _loadProjects(client);
+      });
+    }
+  }
+
+  void _onProjectSelected(ProjectModel? project) {
+    if (project != null) {
+      setState(() {
+        selectedProject = project;
+      });
+    }
+  }
 
   void _startClockIn() {
     setState(() {
@@ -28,14 +85,18 @@ class _ClockInScreenState extends State<ClockInScreen> {
       '/registration-overview',
       extra: {
         'startTime': _startTime,
-        'clientName': _selectedClient,
-        'projectName': _selectedProject,
+        // 'clientName': _selectedClient,
+        // 'projectName': _selectedProject,
         'startDate': DateTime.now().toIso8601String(),
         'endDate': DateTime.now().toIso8601String(),
         'endTime': _endTime,
         'date': '27/02/2025' // You can make this dynamic
       },
     );
+
+    // Future<void> _loadClients() async {
+    //   List<ClientResponse> fetchedClients = await apiService.getClients();
+    // }
   }
 
   @override
@@ -67,20 +128,16 @@ class _ClockInScreenState extends State<ClockInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButton<String>(
+                  DropdownButton<ClientResponse>(
                     isExpanded: true,
-                    value: _selectedClient,
-                    items: _clientNames.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                    value: selectedClient,
+                    items: clients.map((ClientResponse client) {
+                      return DropdownMenuItem<ClientResponse>(
+                        value: client,
+                        child: Text(client.clientName),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedClient = newValue!;
-                      });
-                    },
+                    onChanged: _onClientSelected,
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],
@@ -95,20 +152,17 @@ class _ClockInScreenState extends State<ClockInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButton<String>(
+                  DropdownButton<ProjectModel>(
                     isExpanded: true,
-                    value: _selectedProject,
-                    items: _projectNames.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                    value: selectedProject,
+                    items: projects.map((ProjectModel project) {
+                      return DropdownMenuItem<ProjectModel>(
+                        value: project,
+                        child: Text(project.projectName),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedProject = newValue!;
-                      });
-                    },
+                    onChanged: selectedClient == null ? null : _onProjectSelected,
+                    disabledHint: Text('Select a client first'),
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],

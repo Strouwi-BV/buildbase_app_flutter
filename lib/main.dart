@@ -34,7 +34,10 @@ class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
   final GoRouter _router = GoRouter(
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const ClockInScreen()),
+      GoRoute(
+        path: '/', 
+        builder: (context, state) => const ClockInScreen()
+      ),
       GoRoute(
         path: '/calendar',
         builder: (context, state) {
@@ -43,7 +46,9 @@ class MyApp extends StatelessWidget {
         },
       ),
       GoRoute(
-          path: '/clock-in', builder: (context, state) => const ClockInScreen()),
+          path: '/clock-in', 
+          builder: (context, state) => const ClockInScreen()
+        ),
       GoRoute(
         path: '/profile/:userId',
         builder: (context, state) {
@@ -55,7 +60,12 @@ class MyApp extends StatelessWidget {
         path: '/change-image',
         builder: (context, state) => ChangeImageScreen(onImageChanged: () {}),
       ),
-      GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
+      GoRoute(
+        path: '/menu', 
+        builder: (
+          context, 
+          state) => MenuScreen()
+      ),
       GoRoute(
         path: '/log-in',
         builder: (context, state) {
@@ -63,20 +73,28 @@ class MyApp extends StatelessWidget {
         },
       ),
       GoRoute(
-          path: '/registration-overview',
-          builder: (context, state) {
-            final data = state.extra as Map<String, dynamic>;
-            return RegistrationOverviewScreen(
-                startDate: data['startDate'],
-                startTime: data['startTime'],
-                endDate: data['endDate'],
-                clientName: data['clientName'],
-                projectName: data['projectName'],
-                date: data['date']);
-          }),
+        path: '/registration-overview',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          return RegistrationOverviewScreen(
+              startDate: data['startDate'],
+              startTime: data['startTime'],
+              endDate: data['endDate'],
+              clientName: data['clientName'],
+              projectName: data['projectName'],
+              date: data['date']);
+      }),
       GoRoute(
         path: '/clocking-details',
         builder: (context, state) => const ClockingDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/live-clocking-location',
+        builder: (context, state) => const LiveClockingLocationScreen(),
       ),
     ],
   );
