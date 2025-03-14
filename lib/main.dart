@@ -9,11 +9,19 @@ import '/screens/change_image_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:buildbase_app_flutter/screens/registration_overview_screen.dart';
 import 'package:buildbase_app_flutter/screens/clocking_details_screen.dart';
+import 'package:provider/provider.dart';
+import '/service/timer_service.dart';
+
 
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => TimerProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -76,10 +84,10 @@ class MyApp extends StatelessWidget {
 }
 
 Widget buildMenuItems(BuildContext context) {
+  final timerProvider = Provider.of<TimerProvider>(context);
+
   return Container(
-    color: const Color(
-      0xff13263B,
-    ), // Voeg hier de gewenste achtergrondkleur toe
+    color: const Color(0xff13263B),
     child: Column(
       children: [
         ListTile(
@@ -95,9 +103,27 @@ Widget buildMenuItems(BuildContext context) {
           iconColor: Colors.white,
           textColor: Colors.white,
           leading: const Icon(Icons.access_time_outlined),
-          title: const Text('Clock In'),
+          title: timerProvider.elapsedTime != "00:00:00"
+              ? Text(timerProvider.elapsedTime)
+              : const Text('Clock In'),
           onTap: () {
-            context.go('/clock-in');
+            if (timerProvider.elapsedTime != "00:00:00") {
+              // Geef de benodigde data door
+              context.go(
+                '/registration-overview',
+                extra: {
+                  'startDate': DateTime.now().toIso8601String(),
+                  'startTime': TimeOfDay.now().format(context),
+                  'endDate': DateTime.now().toIso8601String(),
+                  'endTime': TimeOfDay.now().format(context),
+                  'clientName': 'Strouwi', // Vervang dit door dynamische data
+                  'projectName': 'Buildbase App', // Vervang dit door dynamische data
+                  'date': '27/02/2025', // Vervang dit door dynamische data
+                },
+              );
+            } else {
+              context.go('/clock-in');
+            }
           },
         ),
         ListTile(

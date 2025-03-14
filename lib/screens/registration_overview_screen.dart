@@ -1,7 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'header_bar_screen.dart';
+import '/service/timer_service.dart';
+import 'dart:async';
 
 class RegistrationOverviewScreen extends StatefulWidget {
   final String startDate;
@@ -26,29 +28,24 @@ class RegistrationOverviewScreen extends StatefulWidget {
       _RegistrationOverviewScreenState();
 }
 
-class _RegistrationOverviewScreenState
-    extends State<RegistrationOverviewScreen> {
+class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen> {
   late String _currentTime;
   late Timer _timer;
-  late Stopwatch _stopwatch;
-  late String _elapsedTime;
 
   @override
   void initState() {
     super.initState();
-    _currentTime = "00:00";
-    _elapsedTime = "00:00:00"; // Begin met 0 seconden
+    // Verplaats de Timer-logica naar didChangeDependencies
+  }
 
-    // Start de stopwatch bij het laden van het scherm
-    _stopwatch = Stopwatch();
-    _stopwatch.start();
-
-    // Start een timer om elke seconde de verstreken tijd bij te werken
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _currentTime = TimeOfDay.now().format(context);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
           _currentTime = TimeOfDay.now().format(context);
-          _elapsedTime = _formatElapsedTime(_stopwatch.elapsed);
         });
       }
     });
@@ -60,16 +57,16 @@ class _RegistrationOverviewScreenState
     super.dispose();
   }
 
-  String _formatElapsedTime(Duration duration) {
-    // Format de verstreken tijd als uren:minuten:seconden
-    int hours = duration.inHours;
-    int minutes = duration.inMinutes % 60;
-    int seconds = duration.inSeconds % 60;
-    return "$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+  void _stopTimer() {
+    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+    timerProvider.stopTimer(); // Stop de timer
+    timerProvider.resetTimer(); // Reset de timer
   }
 
   @override
   Widget build(BuildContext context) {
+    final timerProvider = Provider.of<TimerProvider>(context);
+
     return Scaffold(
       appBar: const HeaderBar(userName: 'Tom Peeters'),
       body: Padding(
@@ -140,7 +137,7 @@ class _RegistrationOverviewScreenState
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to ClockingDetailsScreen when the button is pressed
+                    _stopTimer(); // Stop de timer wanneer de knop wordt ingedrukt
                     context.go('/clocking-details');
                   },
                   style: ElevatedButton.styleFrom(
@@ -161,30 +158,18 @@ class _RegistrationOverviewScreenState
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              // Voeg de verstreken tijd onderaan het scherm toe
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    'Verstreken tijd: $_elapsedTime',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
   String _formatDate(String date) {
-    // Remove the time part (if any) and only keep the date part
+    // Verwijder het tijdgedeelte (indien aanwezig) en behoud alleen de datum
     List<String> parts = date.split('T')[0].split('-');
-    return "${parts[2]}/${parts[1]}/${parts[0]}"; // Format to DD/MM/YYYY
+    return "${parts[2]}/${parts[1]}/${parts[0]}"; // Format naar DD/MM/YYYY
   }
 
   Widget _buildUnderlinedField(
@@ -241,8 +226,8 @@ class _RegistrationOverviewScreenState
       ],
     );
   }
-
-  Widget _buildTextField(String label) {
+ 
+Widget _buildTextField(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
@@ -255,4 +240,5 @@ class _RegistrationOverviewScreenState
       ),
     );
   }
-}
+
+

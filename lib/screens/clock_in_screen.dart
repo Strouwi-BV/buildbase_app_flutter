@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'header_bar_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'header_bar_screen.dart';
+import '/service/timer_service.dart';
+
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
@@ -12,34 +15,52 @@ class ClockInScreen extends StatefulWidget {
 class _ClockInScreenState extends State<ClockInScreen> {
   late String _startTime;
   late String _endTime;
-  String _selectedClient = 'Strouwi'; // Default values
+  String _selectedClient = 'Strouwi'; // Standaardwaarden
   String _selectedProject = 'Buildbase App';
   List<String> _clientNames = ['Strouwi', 'Client 2', 'Client 3'];
   List<String> _projectNames = ['Buildbase App', 'Project 2', 'Project 3'];
 
-  void _startClockIn() {
-    setState(() {
-      _startTime = TimeOfDay.now().format(context);
-      _endTime = TimeOfDay.now().format(context);
-    });
+ void _startClockIn() {
+  final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+  timerProvider.startTimer(); // Start de timer
 
-    // Navigate to RegistrationOverviewScreen and pass the selected values
-    context.go(
-      '/registration-overview',
-      extra: {
-        'startTime': _startTime,
-        'clientName': _selectedClient,
-        'projectName': _selectedProject,
-        'startDate': DateTime.now().toIso8601String(),
-        'endDate': DateTime.now().toIso8601String(),
-        'endTime': _endTime,
-        'date': '27/02/2025' // You can make this dynamic
-      },
-    );
-  }
+  setState(() {
+    _startTime = TimeOfDay.now().format(context);
+    _endTime = TimeOfDay.now().format(context);
+  });
+
+  // Navigeer naar RegistrationOverviewScreen en geef de benodigde data door
+  context.go(
+    '/registration-overview',
+    extra: {
+      'startTime': _startTime,
+      'clientName': _selectedClient,
+      'projectName': _selectedProject,
+      'startDate': DateTime.now().toIso8601String(),
+      'endDate': DateTime.now().toIso8601String(),
+      'endTime': _endTime,
+      'date': '27/02/2025' // Dit kan dynamisch gemaakt worden
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
+    final timerProvider = Provider.of<TimerProvider>(context);
+
+    // Als de timer loopt, laat een bericht zien dat de gebruiker naar de overview moet gaan
+    if (timerProvider.elapsedTime != "00:00:00") {
+      return Scaffold(
+        appBar: const HeaderBar(userName: 'Tom Peeters'),
+        body: Center(
+          child: Text(
+            'Clock-in is al gestart. Ga naar de overview om te stoppen.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     _startTime = TimeOfDay.now().format(context);
 
     return Scaffold(
