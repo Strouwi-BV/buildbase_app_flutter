@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:buildbase_app_flutter/model/login_response.dart';
+import 'package:buildbase_app_flutter/model/client_response.dart';
+import 'package:buildbase_app_flutter/model/project_model.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -45,4 +47,60 @@ class ApiService {
       return null;
     }
   }
+  Future<List<ClientResponse>> getClients() async {
+  String? token = await _secureStorage.readData('token');
+  String? organization = await _secureStorage.readData('organizationId');
+  String? userId = await _secureStorage.readData('userId');
+
+  final url = Uri.parse('$_baseUrl/clients/active/user'); // Typfout gecorrigeerd
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+    'Organization': '$organization'
+  };
+
+  try {
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      print('Response is 200 client');
+      return data.map((json) => ClientResponse.fromJson(json)).toList();
+    } else {
+      print('Failed to load clients: ${response.statusCode} - ${response.body}');
+      throw Exception("Failed to load clients");
+    }
+  } catch (e) {
+    print('Error fetching clients: $e');
+    throw Exception("Error fetching clients: $e");
+  }
+}
+
+Future<List<ProjectModel>> getProjects(String clientId) async {
+  String? token = await _secureStorage.readData('token');
+  String? organization = await _secureStorage.readData('organizationId');
+
+  final url = Uri.parse('$_baseUrl/clients/$clientId/projects'); // Correcte URL
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+    'Organization': '$organization'
+  };
+
+  try {
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => ProjectModel.fromJson(json)).toList();
+    } else {
+      print('Failed to load projects: ${response.statusCode} - ${response.body}');
+      throw Exception("Failed to load projects");
+    }
+  } catch (e) {
+    print('Error fetching projects: $e');
+    throw Exception("Error fetching projects: $e");
+  }
+}
+
 }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
 import '/service/timer_service.dart';
+import 'package:buildbase_app_flutter/model/client_response.dart';
+import 'package:buildbase_app_flutter/model/project_model.dart';
+import 'package:buildbase_app_flutter/service/api_service.dart';
 
 
 class ClockInScreen extends StatefulWidget {
@@ -15,10 +19,52 @@ class ClockInScreen extends StatefulWidget {
 class _ClockInScreenState extends State<ClockInScreen> {
   late String _startTime;
   late String _endTime;
-  String _selectedClient = 'Strouwi'; // Standaardwaarden
-  String _selectedProject = 'Buildbase App';
-  List<String> _clientNames = ['Strouwi', 'Client 2', 'Client 3'];
-  List<String> _projectNames = ['Buildbase App', 'Project 2', 'Project 3'];
+  String _selectedClient = ''; // Standaardwaarden
+  String _selectedProject = '';
+  List<ClientResponse> _clients = [];
+  List<ProjectModel> _projects = [];
+
+  // Functie om de lijst van klanten op te halen
+  Future<void> _fetchClients() async {
+  try {
+    ApiService apiService = ApiService();
+    List<ClientResponse> clients = await apiService.getClients(); 
+    print("Fetched clients: $clients");  // Voeg print toe
+    setState(() {
+      _clients = clients;
+      if (_clients.isNotEmpty) {
+        _selectedClient = _clients[0].clientName;
+      }
+    });
+  } catch (e) {
+    print("Error fetching clients: $e");
+  }
+}
+  // Functie om de lijst van projecten op te halen
+  Future<void> _fetchProjects(String clientId) async {
+  try {
+    ApiService apiService = ApiService();
+    List<ProjectModel> projects = await apiService.getProjects(clientId); 
+    print("Fetched projects: $projects");  // Voeg print toe
+    setState(() {
+      _projects = projects;
+      if (_projects.isNotEmpty) {
+        _selectedProject = _projects[0].projectName;
+      }
+    });
+  } catch (e) {
+    print("Error fetching projects: $e");
+  }
+}
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchClients();
+    _fetchProjects(_selectedClient);
+  }
+
+  
 
  void _startClockIn() {
   final timerProvider = Provider.of<TimerProvider>(context, listen: false);
@@ -93,10 +139,10 @@ class _ClockInScreenState extends State<ClockInScreen> {
                   DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedClient,
-                    items: _clientNames.map((String value) {
+                    items: _clients.map((ClientResponse client) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: client.clientName,
+                        child: Text(client.clientName),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -121,10 +167,10 @@ class _ClockInScreenState extends State<ClockInScreen> {
                   DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedProject,
-                    items: _projectNames.map((String value) {
+                    items: _projects.map((ProjectModel project) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: project.projectName,
+                        child: Text(project.projectName),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
