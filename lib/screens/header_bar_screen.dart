@@ -11,7 +11,6 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
 }
 
 class _HeaderBarState extends State<HeaderBar> {
@@ -55,7 +54,9 @@ class _HeaderBarState extends State<HeaderBar> {
           return IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              GoRouter.of(context).go('/menu');
+              String currentRoute = GoRouterState.of(context).matchedLocation;
+              print(currentRoute);
+              GoRouter.of(context).push('/menu', extra: currentRoute);
             },
           );
         },
@@ -172,4 +173,3 @@ class _HeaderBarState extends State<HeaderBar> {
     }
   }
 }
-

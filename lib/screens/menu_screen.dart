@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/main.dart'; // Zorg ervoor dat buildHeader en buildMenuItems zijn geïmporteerd
+import 'package:go_router/go_router.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final String currentRoute = GoRouterState.of(context).extra as String;
+
     return Scaffold(
       backgroundColor: const Color(0xff13263B),
       appBar: AppBar(
@@ -19,11 +22,15 @@ class MenuScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => GoRouter.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[buildMenuItems(context)],
+          children: <Widget>[buildMenuItems(context, currentRoute)],
         ),
       ),
     );
