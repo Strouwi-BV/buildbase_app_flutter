@@ -51,6 +51,7 @@ dependencies:
   calendar_view: ^1.4.0
   shared_preferences_android: ^2.4.1
   table_calendar: ^3.0.0
+  
 
 dev_dependencies:
   flutter_test:

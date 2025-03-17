@@ -387,8 +387,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       appBar: const HeaderBar(title: "Calendar"),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xff13263B),
         onPressed: () => _addEvent(context),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
         children: [

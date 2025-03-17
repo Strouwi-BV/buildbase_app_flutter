@@ -37,30 +37,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     super.dispose();
   }
 
-  void _selectStartTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_startTime),
-    );
-    if (picked != null) {
-      setState(() {
-        _startTime = DateTime(_startTime.year, _startTime.month, _startTime.day, picked.hour, picked.minute);
-      });
-    }
-  }
-
-  void _selectEndTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_endTime),
-    );
-    if (picked != null) {
-      setState(() {
-        _endTime = DateTime(_endTime.year, _endTime.month, _endTime.day, picked.hour, picked.minute);
-      });
-    }
-  }
-
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -77,14 +53,32 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
+  void _selectTime(BuildContext context, bool isStartTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(isStartTime ? _startTime : _endTime),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStartTime) {
+          _startTime = DateTime(_startTime.year, _startTime.month, _startTime.day, picked.hour, picked.minute);
+        } else {
+          _endTime = DateTime(_endTime.year, _endTime.month, _endTime.day, picked.hour, picked.minute);
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Event'),
+        backgroundColor: const Color(0xff13263B),
+        title: const Text('Edit Event', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
+            icon: const Icon(Icons.check, color: Colors.white),
             onPressed: () {
               final updatedEvent = Event(
                 title: _titleController.text,
@@ -101,36 +95,71 @@ class _EditEventScreenState extends State<EditEventScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    prefixIcon: Icon(Icons.event),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    prefixIcon: Icon(Icons.description),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _locationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Location',
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const Icon(Icons.calendar_today),
+                  title: Text('Date: ${_startTime.day}/${_startTime.month}/${_startTime.year}'),
+                  onTap: () => _selectDate(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: Text('Start Time: ${_startTime.hour}:${_startTime.minute.toString().padLeft(2, '0')}'),
+                  onTap: () => _selectTime(context, true),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: Text('End Time: ${_endTime.hour}:${_endTime.minute.toString().padLeft(2, '0')}'),
+                  onTap: () => _selectTime(context, false),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff13263B),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text('Annuleren'),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _locationController,
-              decoration: const InputDecoration(labelText: 'Location'),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: Text('Date: ${_startTime.day}/${_startTime.month}/${_startTime.year}'),
-              onTap: () => _selectDate(context),
-            ),
-            ListTile(
-              title: Text('Start Time: ${_startTime.hour}:${_startTime.minute.toString().padLeft(2,'0')}'),
-              onTap: () => _selectStartTime(context),
-            ),
-            ListTile(
-              title: Text('End Time: ${_endTime.hour}:${_endTime.minute.toString().padLeft(2,'0')}'),
-              onTap: () => _selectEndTime(context),
-            ),
-          ],
+          ),
         ),
       ),
     );

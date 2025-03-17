@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:buildbase_app_flutter/screens/calendar_screen.dart'; // Importeer de CalendarScreen klasse
+import 'package:buildbase_app_flutter/screens/calendar_screen.dart';
 import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
 
 class EventDetailsScreen extends StatelessWidget {
@@ -11,12 +11,14 @@ class EventDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event Details'),
+        backgroundColor: const Color(0xff13263B),
+        title: const Text('Event Details', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.edit, color: Colors.white),
             onPressed: () {
-                Navigator.pop(context,'edit');
+              Navigator.pop(context, 'edit');
             },
           ),
         ],
