@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:buildbase_app_flutter/main.dart'; // Zorg ervoor dat buildHeader en buildMenuItems zijn geïmporteerd
+import 'package:buildbase_app_flutter/main.dart';
 import 'package:go_router/go_router.dart';
 
 class MenuScreen extends StatelessWidget {
