@@ -17,21 +17,30 @@ class _AddEventScreenState extends State<AddEventScreen> {
   TimeOfDay _selectedStartTime = TimeOfDay.now();
   TimeOfDay _selectedEndTime = TimeOfDay.now();
   String? _selectedLocation;
-  Color _selectedColor = Colors.blue; // Default color
+  Color _selectedColor = Colors.blue;
 
   void _addEvent(BuildContext context) {
     if (_formKey.currentState!.validate()) {
-      // Maak een nieuw evenement
-      DateTime startDateTime = DateTime(_selectedStartDate.year, _selectedStartDate.month, _selectedStartDate.day, _selectedStartTime.hour, _selectedStartTime.minute);
-      DateTime endDateTime = DateTime(_selectedEndDate.year, _selectedEndDate.month, _selectedEndDate.day, _selectedEndTime.hour, _selectedEndTime.minute);
-      final newEvent = Event(title: _titleController.text,
+      DateTime startDateTime = DateTime(
+          _selectedStartDate.year,
+          _selectedStartDate.month,
+          _selectedStartDate.day,
+          _selectedStartTime.hour,
+          _selectedStartTime.minute);
+      DateTime endDateTime = DateTime(
+          _selectedEndDate.year,
+          _selectedEndDate.month,
+          _selectedEndDate.day,
+          _selectedEndTime.hour,
+          _selectedEndTime.minute);
+      final newEvent = Event(
+        title: _titleController.text,
         description: _descriptionController.text,
         startTime: startDateTime,
         endTime: endDateTime,
         location: _selectedLocation,
-        color: _selectedColor, // Gebruik de geselecteerde kleur
+        color: _selectedColor,
       );
-      // Sluit het scherm en geef het nieuwe evenement door aan het vorige scherm
       Navigator.of(context).pop(newEvent);
     }
   }
@@ -74,96 +83,108 @@ class _AddEventScreenState extends State<AddEventScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Event'),
+        backgroundColor: const Color(0xff13263B),
+        title: const Text('Add Event', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              Row(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton(
-                    onPressed: () => _selectDate(context, true),
-                    child: Text(
-                        'Start Date: ${_selectedStartDate.toLocal().toString().split(' ')[0]}'),
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                    validator: (value) =>
+                        (value == null || value.isEmpty) ? 'Please enter a title' : null,
                   ),
-                ],
-              ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => _selectTime(context, true),
-                    child: Text('Start Time: ${_selectedStartTime.format(context)}'),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
                   ),
-                  TextButton(
-                    onPressed: () => _selectTime(context, false),
-                    child: Text('End Time: ${_selectedEndTime.format(context)}'),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: Text('Start Date: ${_selectedStartDate.toLocal().toString().split(' ')[0]}'),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () => _selectDate(context, true),
                   ),
-                ],
-              ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => _selectDate(context, false),
-                    child: Text(
-                        'End Date: ${_selectedEndDate.toLocal().toString().split(' ')[0]}'),
+                  ListTile(
+                    title: Text('Start Time: ${_selectedStartTime.format(context)}'),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: () => _selectTime(context, true),
                   ),
-                ],
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedLocation,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedLocation = newValue;
-                  });
-                },
-                items: const [
-                  DropdownMenuItem(value: 'Office', child: Text('Office')),
-                  DropdownMenuItem(value: 'Home', child: Text('Home')),
-                  DropdownMenuItem(value: 'Other', child: Text('Other')),
-                ],
-                decoration: const InputDecoration(labelText: 'Location'),
-              ),
-               // Color picker
-              Row(
-                children: [
-                  const Text('Color: '),
-                  DropdownButton<Color>(
-                    value: _selectedColor,
+                  ListTile(
+                    title: Text('End Date: ${_selectedEndDate.toLocal().toString().split(' ')[0]}'),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () => _selectDate(context, false),
+                  ),
+                  ListTile(
+                    title: Text('End Time: ${_selectedEndTime.format(context)}'),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: () => _selectTime(context, false),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: _selectedLocation,
+                    onChanged: (newValue) => setState(() => _selectedLocation = newValue),
                     items: const [
-                      DropdownMenuItem(value: Colors.blue, child: CircleAvatar(backgroundColor: Colors.blue)),
-                      DropdownMenuItem(value: Colors.red, child: CircleAvatar(backgroundColor: Colors.red)),
-                      DropdownMenuItem(value: Colors.green, child: CircleAvatar(backgroundColor: Colors.green)),
-                      DropdownMenuItem(value: Colors.yellow, child: CircleAvatar(backgroundColor: Colors.yellow)),
+                      DropdownMenuItem(value: 'Office', child: Text('Office')),
+                      DropdownMenuItem(value: 'Home', child: Text('Home')),
+                      DropdownMenuItem(value: 'Other', child: Text('Other')),
                     ],
-                    onChanged: (value) {
-                      setState(() {                        _selectedColor = value!;
-                      });
+                    decoration: const InputDecoration(labelText: 'Location'),
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: const Text('Select Color'),
+                    trailing: CircleAvatar(backgroundColor: _selectedColor),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Pick a color'),
+                          content: Wrap(
+                            children: [
+                              Colors.blue, Colors.red, Colors.green, Colors.yellow
+                            ].map((color) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() => _selectedColor = color);
+                                  Navigator.pop(context);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: CircleAvatar(backgroundColor: color, radius: 15),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
                     },
                   ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff13263B),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => _addEvent(context),
+                      child: const Text('Add Event'),
+                    ),
+                  ),
                 ],
               ),
-              ElevatedButton(
-                onPressed: () => _addEvent(context),
-                child: const Text('Add Event'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

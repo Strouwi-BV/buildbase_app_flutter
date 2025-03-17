@@ -357,8 +357,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: "Calendar",
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xff13263B),
         onPressed: () => _addEvent(context),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
         children: [Row(
