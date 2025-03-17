@@ -11,9 +11,11 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
-import '/screens/edit_clockin_screen.dart'; // Importeer de EditClockInScreen
-import '/screens/event_details_screen.dart'; // Importeer de EventDetailsScreen
+import '/screens/edit_clockin_screen.dart';
+import '/screens/event_details_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '/screens/calendar_screen.dart'
+    as calendar; // Importeer CalendarScreen.dart en noem het calendar
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -29,7 +31,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(

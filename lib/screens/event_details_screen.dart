@@ -1,76 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latLng;
-import 'package:go_router/go_router.dart';
+import 'package:buildbase_app_flutter/screens/calendar_screen.dart'; // Importeer de CalendarScreen klasse
+import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
 
-class EventDetailsScreen extends StatefulWidget {
-  final String formattedDate;
-  final String clockInTime;
-  final String clockOutTime;
-  final String noteText;
-  final String location;
-  final DateTime date; // Voeg de datum toe als een parameter
+class EventDetailsScreen extends StatelessWidget {
+  final Event event;
 
-  const EventDetailsScreen({
-    Key? key,
-    required this.formattedDate,
-    required this.clockInTime,
-    required this.clockOutTime,
-    required this.noteText,
-    required this.location,
-    required this.date,
-  }) : super(key: key);
-
-  @override
-  _EventDetailsScreenState createState() => _EventDetailsScreenState();
-}
-
-class _EventDetailsScreenState extends State<EventDetailsScreen> {
-  latLng.LatLng? _locationCoordinates;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCoordinates();
-  }
-
-  void _fetchCoordinates() async {
-    try {
-      List<Location> locations = await locationFromAddress(widget.location);
-      if (locations.isNotEmpty) {
-        setState(() {
-          _locationCoordinates = latLng.LatLng(
-            locations[0].latitude,
-            locations[0].longitude,
-          );
-        });
-      }
-    } catch (e) {
-      print('Error fetching coordinates: $e');
-    }
-  }
+  const EventDetailsScreen({Key? key, required this.event}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.formattedDate,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        backgroundColor: const Color(0xff13263B),
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(), // Gebruik context.pop()
-        ),
+        title: const Text('Event Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+                Navigator.pop(context,'edit');
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Title: ${event.title}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Description: ${event.description ?? 'No description'}'),
+            const SizedBox(height: 8),
+            Text('Start Time: ${event.startTime}'),
+            const SizedBox(height: 8),
+            Text('End Time: ${event.endTime}'),
+            const SizedBox(height: 8),
+            Text('Location: ${event.location ?? 'No location'}'),
+             const SizedBox(height: 16),
+              Center(
+                 child: ElevatedButton(
+                  onPressed: () {
+                  Navigator.pop(context,event);
             _buildInfoCard('Ingeklokt', widget.clockInTime, Icons.login),
             _buildInfoCard('Uitgeklokt', widget.clockOutTime, Icons.logout),
             _buildInfoCard('Notities', widget.noteText, Icons.notes),
@@ -154,6 +123,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     },
                   );
                 },
+              child: const Text('Verwijder')),
+              )
                 child: const Text(
                   'Bewerk',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

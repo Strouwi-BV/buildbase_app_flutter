@@ -1,578 +1,655 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_view/calendar_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:buildbase_app_flutter/screens/add_event_screen.dart';
+import 'package:buildbase_app_flutter/screens/event_details_screen.dart';
+import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
 import 'package:go_router/go_router.dart';
-import 'header_bar_screen.dart'; // Import your custom HeaderBar
+import 'header_bar_screen.dart';
 
-class CalendarScreen extends StatefulWidget {
-  final String data;
+// Event klasse
+class Event {
+  final String title;
+  final String? description;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String? location;
+  Color color; // Maak de kleur aanpasbaar
 
-  const CalendarScreen({Key? key, required this.data}) : super(key: key);
+  Event({
+    required this.title,
+    this.description,
+    required this.startTime,
+    required this.endTime,
+    this.location,
+    this.color = Colors.blue,
+  });
 
-  @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
+  bool overlapsWith(Event other) {
+    return startTime.isBefore(other.endTime) &&
+        endTime.isAfter(other.startTime);
+  }
 }
 
+// EventIndicator klasse
+class EventIndicator extends StatelessWidget {
+  final Event event;
+
+  const EventIndicator({Key? key, required this.event}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 1.0),
+      decoration: BoxDecoration(color: event.color, shape: BoxShape.circle),
+      width: 8.0,
+      height: 8.0,
+    );
+  }
+}
+
+// EventTile klasse
+class EventTile extends StatelessWidget {
+  final Event event;
+  final VoidCallback onDelete; // Callback om het evenement te verwijderen
+  final VoidCallback onEdit;
+
+  const EventTile({
+    Key? key,
+    required this.event,
+    required this.onDelete,
+    required this.onEdit,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(event.title),
+      subtitle: Text(
+        '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - ${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}',
+      ),
+      onTap: onEdit,
+      trailing: IconButton(icon: const Icon(Icons.delete), onPressed: onDelete),
+    );
+  }
+}
+
+// HourTile klasse
+class HourTile extends StatelessWidget {
+  final String hour;
+
+  const HourTile({Key? key, required this.hour}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 60,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        alignment: Alignment.topLeft,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
+          ),
+        ),
+        child: Text(hour, style: const TextStyle(fontSize: 12)),
+      ),
+    );
+  }
+}
+
+class EventHourTile extends StatelessWidget {
+  final Event event;
+  final int index;
+  final int totalEvents;
+  final int dayIndex; // Nieuwe property om de dagindex door te geven
+  final CalendarView
+  calendarView; // Nieuwe property om de kalenderweergave door te geven
+  final Function(BuildContext, Event)
+  showEventDetails; // Callback functie voor het tonen van de event details
+
+  const EventHourTile({
+    Key? key,
+    required this.event,
+    required this.index,
+    required this.totalEvents,
+    required this.dayIndex,
+    required this.calendarView,
+    required this.showEventDetails,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final startOfDay = DateTime(
+      event.startTime.year,
+      event.startTime.month,
+      event.startTime.day,
+      0,
+      0,
+    );
+    final startMinutes = event.startTime.difference(startOfDay).inMinutes;
+    final endMinutes = event.endTime.difference(startOfDay).inMinutes;
+    const totalMinutesInDay = 24 * 60; // 1440
+
+    final top = (startMinutes / totalMinutesInDay) * 1440;
+    final height = ((endMinutes - startMinutes) / totalMinutesInDay) * 1440;
+
+    // Bepaal de breedte per evenement
+    double widthPerEvent;
+    double left;
+    if (calendarView == CalendarView.day) {
+      // In dagweergave: verdeel de breedte over de overlappende evenementen
+      widthPerEvent = (MediaQuery.of(context).size.width - 50) / totalEvents;
+      left = 50 + (index * widthPerEvent);
+    } else {
+      // In weekweergave: verdeeld over de week
+      widthPerEvent =
+          (MediaQuery.of(context).size.width - 50) / (totalEvents * 7);
+      left =
+          50 +
+          (index * widthPerEvent) +
+          (dayIndex * (MediaQuery.of(context).size.width - 50) / 7);
+    }
+
+    return Positioned(
+      top: top,
+      left: left,
+      width: widthPerEvent,
+      height: height,
+      child: GestureDetector(
+        onTap: () {
+          showEventDetails(context, event);
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 1.0),
+          decoration: BoxDecoration(
+            color: event.color,
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          child: ListTile(
+            title: Text(
+              event.title,
+              style: TextStyle(
+                fontSize: calendarView == CalendarView.day ? 14 : 10,
+              ), // Grotere tekst in dagweergave
+            ),
+            subtitle:
+                calendarView == CalendarView.day
+                    ? Text(
+                      '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - ${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(fontSize: 12),
+                    )
+                    : null, // Geen subtitel in weekweergave
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// CalendarScreen klasse
+class CalendarScreen extends StatefulWidget {
+  @override
+  _CalendarScreenState createState() => _CalendarScreenState();
+}
+
+// _CalendarScreenState klasse
 class _CalendarScreenState extends State<CalendarScreen> {
-  late EventController _eventController;
-  String _currentViewType = 'Month';
-  bool _isDialogShown = false;
-  late DateTime _currentMonth;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
+  List<Event> _events = [];
+  CalendarView _calendarView = CalendarView.month;
 
-  @override
-  void initState() {
-    super.initState();
-    _eventController =
-        EventController()..addListener(() {
-          setState(() {});
-        });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadEvents();
-  }
-
-  void _updateCalendar() {
-    _loadEvents();
-    _eventController.notifyListeners();
-  }
-
-  void _loadEvents() async {
-    if (_isDialogShown) {
-      Navigator.of(context).pop();
-      _isDialogShown = false;
-    }
-    _eventController.removeWhere((event) => true);
-    final prefs = await SharedPreferences.getInstance();
-    List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
-
-    Map<String, List<String>> clockEvents = {};
-    Map<String, String> notes = {};
-
-    for (String timeStamp in timeStamps) {
-      DateTime date = _extractDateFromTimeStamp(timeStamp);
-      String dayKey = DateFormat('yyyy-MM-dd').format(date);
-      if (timeStamp.startsWith('Notities:')) {
-        notes[dayKey] = timeStamp.split('- ')[1];
-      } else {
-        if (!clockEvents.containsKey(dayKey)) {
-          clockEvents[dayKey] = [];
-        }
-        clockEvents[dayKey]!.add(timeStamp);
-      }
-    }
-
-    DateTime now = DateTime.now();
-    DateTime firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    DateTime lastDay =
-        DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
-
-    for (DateTime date = firstDay;
-        date.isBefore(lastDay.add(Duration(days: 1)));
-        date = date.add(Duration(days: 1))) {
-      String dayKey = DateFormat('yyyy-MM-dd').format(date);
-      List<String> events = clockEvents[dayKey] ?? [];
-      bool hasClockIn = events.any((e) => e.startsWith('Ingeklokt:'));
-      String note = notes[dayKey] ?? '';
-
-      if (date.weekday == DateTime.saturday ||
-          date.weekday == DateTime.sunday) {
-      if (date.weekday == DateTime.saturday ||
-          date.weekday == DateTime.sunday) {
-        continue;
-      }
-
-      if (date.isAfter(now) &&
-          DateFormat('yyyy-MM-dd').format(date) !=
-              DateFormat('yyyy-MM-dd').format(now)) {
-      if (date.isAfter(now) &&
-          DateFormat('yyyy-MM-dd').format(date) !=
-              DateFormat('yyyy-MM-dd').format(now)) {
-        continue;
-      }
-
-      CalendarEventData eventData = CalendarEventData(
-        date: date,
-        title: '',
-        startTime: date,
-        endTime: date.add(Duration(hours: 24)),
-        color:
-            hasClockIn
-                ? Colors.green.withOpacity(0.7)
-                : const Color.fromARGB(255, 231, 57, 44).withOpacity(0.7),
-        description: events.join('\n'),
+  List<Event> _getEventsForDay(DateTime day) {
+    final List<Event> dayEvents = [];
+    for (var event in _events) {
+      final eventDate = DateTime(
+        event.startTime.year,
+        event.startTime.month,
+        event.startTime.day,
       );
-      _eventController.add(eventData);
-    }
-  }
-
-  DateTime _extractDateFromTimeStamp(String timeStamp) {
-    String dateString = timeStamp;
-
-    if (dateString.startsWith('Ingeklokt:')) {
-      dateString = dateString.substring('Ingeklokt:'.length);
-    } else if (dateString.startsWith('Uitgeklokt:')) {
-      dateString = dateString.substring('Uitgeklokt:'.length);
-    } else if (timeStamp.startsWith('Notities:')) {
-      List<String> parts = timeStamp.split(' - ');
-      if (parts.length >= 2) {
-        dateString = parts[0].substring('Notities: '.length);
+      if (isSameDay(eventDate, day)) {
+        dayEvents.add(event);
       }
     }
 
-    dateString = dateString.trim();
-    try {
-      return DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateString);
-    } catch (e) {
-      return DateFormat('yyyy-MM-dd').parse(dateString);
+    // Sorteer de evenementen op starttijd
+    dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    // Splits overlappende evenementen op in groepen
+    List<List<Event>> eventGroups = [];
+    List<Event> currentGroup = [];
+
+    for (var i = 0; i < dayEvents.length; i++) {
+      bool added = false;
+      for (var j = 0; j < eventGroups.length; j++) {
+        bool overlaps = false;
+        for (var k = 0; k < eventGroups[j].length; k++) {
+          if (dayEvents[i].overlapsWith(eventGroups[j][k])) {
+            overlaps = true;
+            break;
+          }
+        }
+        if (!overlaps) {
+          eventGroups[j].add(dayEvents[i]);
+          added = true;
+          break;
+        }
+      }
+      if (!added) {
+        eventGroups.add([dayEvents[i]]);
+      }
     }
+
+    // Organiseer evenementen per tijdslot
+    List<Event> organizedEvents = [];
+    for (var group in eventGroups) {
+      for (var event in group) {
+        organizedEvents.add(event);
+      }
+    }
+
+    return organizedEvents;
   }
 
-  void _createEvent(DateTime date) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        TextEditingController eventTextController = TextEditingController();
-        TextEditingController noteTextController = TextEditingController();
-        DateTime selectedDate = date;
-        TimeOfDay selectedStartTime = TimeOfDay.now();
-        TimeOfDay selectedEndTime = TimeOfDay.now();
-
-        return AlertDialog(
-          backgroundColor: Colors.white, // Example background color
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0), // Rounded corners
-          ),
-          title: Text(
-            'Nieuw evenement',
-            style: TextStyle(
-              color: const Color(0xff13263B), // Example title color
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: eventTextController,
-                decoration: InputDecoration(
-                  hintText: 'Voer evenement details in',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(
-                      color: const Color(0xff13263B), // Example border color
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              TextField(
-                controller: noteTextController,
-                decoration: InputDecoration(
-                  hintText: 'Voer notitie in',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(
-                      color: const Color(0xff13263B), // Example border color
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff13263B), // Button color
-                  foregroundColor: Colors.white, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Button corners
-                  ),
-                ),
-                child: Text('Kies Datum'),
-                onPressed: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime(DateTime.now().year - 1),
-                    lastDate: DateTime(DateTime.now().year + 1),
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: ThemeData.light().copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: const Color(0xff13263B), // Header color
-                            onPrimary: Colors.white, // Header text color
-                            surface: Colors.white,
-                            onSurface: Colors.black,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      selectedDate = pickedDate;
-                    });
-                  }
-                },
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff13263B), // Button color
-                  foregroundColor: Colors.white, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Button corners
-                  ),
-                ),
-                child: Text('Kies Begintijd'),
-                onPressed: () async {
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: selectedStartTime,
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: ThemeData.light().copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: const Color(0xff13263B), // Header color
-                            onPrimary: Colors.white, // Header text color
-                            surface: Colors.white,
-                            onSurface: Colors.black,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      selectedStartTime = pickedTime;
-                    });
-                  }
-                },
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff13263B), // Button color
-                  foregroundColor: Colors.white, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Button corners
-                  ),
-                ),
-                child: Text('Kies Eindtijd'),
-                onPressed: () async {
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: selectedEndTime,
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: ThemeData.light().copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: const Color(0xff13263B), // Header color
-                            onPrimary: Colors.white, // Header text color
-                            surface: Colors.white,
-                            onSurface: Colors.black,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      selectedEndTime = pickedTime;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                'Annuleren',
-                style: TextStyle(
-                  color: const Color(0xff13263B), // Text color
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Opslaan',
-                style: TextStyle(
-                  color: const Color(0xff13263B), // Text color
-                ),
-              ),
-              onPressed: () async {
-                if (eventTextController.text.isNotEmpty) {
-                  final prefs = await SharedPreferences.getInstance();
-                  final formattedDate = DateFormat(
-                    'yyyy-MM-dd',
-                  ).format(selectedDate);
-                  String noteText = noteTextController.text;
-                  String clockInTimeStamp = _formatDate(
-                    selectedDate,
-                    selectedStartTime,
-                  );
-                  String clockOutTimeStamp = _formatDate(
-                    selectedDate,
-                    selectedEndTime,
-                  );
-                  List<String> timeStamps =
-                      prefs.getStringList('timeStamps') ?? [];
-                  timeStamps.removeWhere(
-                    (timeStamp) => timeStamp.contains(formattedDate),
-                  );
-                  if (clockInTimeStamp != "Niet ingegeven") {
-                    timeStamps.add('Ingeklokt: $clockInTimeStamp');
-                  }
-                  if (clockOutTimeStamp != "Niet ingegeven") {
-                    timeStamps.add('Uitgeklokt: $clockOutTimeStamp');
-                  }
-
-                  if (noteText.isNotEmpty) {
-                    timeStamps.add('Notities: $formattedDate - $noteText');
-                  }
-                  await prefs.setStringList('timeStamps', timeStamps);
-                  DateTime eventStartDateTime = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                    selectedStartTime.hour,
-                    selectedStartTime.minute,
-                  );
-                  DateTime eventEndDateTime = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                    selectedEndTime.hour,
-                    selectedEndTime.minute,
-                  );
-                  setState(() {
-                    _eventController.add(
-                      CalendarEventData(
-                        date: eventStartDateTime,
-                        title: eventTextController.text,
-                        startTime: eventStartDateTime,
-                        endTime: eventEndDateTime,
-                      ),
-                    );
-                  });
-                  _updateCalendar();
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
+  List<List<Event>> _getEventsForWeek(DateTime firstDayOfWeek) {
+    List<List<Event>> weekEvents = [];
+    for (int i = 0; i < 7; i++) {
+      final currentDay = firstDayOfWeek.add(Duration(days: i));
+      List<Event> dayEvents = [];
+      for (var event in _events) {
+        final eventDate = DateTime(
+          event.startTime.year,
+          event.startTime.month,
+          event.startTime.day,
         );
-      },
-    );
+        if (isSameDay(eventDate, currentDay)) {
+          dayEvents.add(event);
+        }
+      }
+
+      // Sorteer de evenementen op starttijd
+      dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+      // Splits overlappende evenementen op in groepen
+      List<List<Event>> eventGroups = [];
+      List<Event> currentGroup = [];
+
+      for (var i = 0; i < dayEvents.length; i++) {
+        bool added = false;
+        for (var j = 0; j < eventGroups.length; j++) {
+          bool overlaps = false;
+          for (var k = 0; k < eventGroups[j].length; k++) {
+            if (dayEvents[i].overlapsWith(eventGroups[j][k])) {
+              overlaps = true;
+              break;
+            }
+          }
+          if (!overlaps) {
+            eventGroups[j].add(dayEvents[i]);
+            added = true;
+            break;
+          }
+        }
+        if (!added) {
+          eventGroups.add([dayEvents[i]]);
+        }
+      }
+
+      // Organiseer evenementen per tijdslot
+      List<Event> organizedEvents = [];
+      for (var group in eventGroups) {
+        for (var event in group) {
+          organizedEvents.add(event);
+        }
+      }
+
+      weekEvents.add(organizedEvents);
+    }
+    return weekEvents;
   }
 
-  String _formatDate(DateTime date, TimeOfDay? time) {
-    if (time == null) {
-      return 'Niet ingegeven';
-    }
-    DateTime dateTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+  List<Event> get _upcomingEvents {
+    final now = DateTime.now();
+    return List.from(_events.where((event) => event.startTime.isAfter(now)));
   }
 
-  void _viewEventDetails(CalendarEventData event) async {
-    if (event.date.weekday == DateTime.saturday ||
-        event.date.weekday == DateTime.sunday) {
-      return;
-    }
-
-    DateTime now = DateTime.now();
-    if (event.date.isAfter(now) &&
-        DateFormat('yyyy-MM-dd').format(event.date) !=
-            DateFormat('yyyy-MM-dd').format(now)) {
-      return;
-    }
-
-    String formattedDate = DateFormat('dd-MM-yyyy').format(event.date);
-    List<String> events = event.description?.split('\n') ?? [];
-
-    String clockInTime = 'Niet ingeklokt';
-    String clockOutTime = 'Niet uitgeklokt';
-    String noteText = '';
-    String location = '';
-
-    List<String> clockInEvents =
-        events.where((event) => event.startsWith('Ingeklokt:')).toList();
-    List<String> clockOutEvents =
-        events.where((event) => event.startsWith('Uitgeklokt:')).toList();
-    String dayKey = DateFormat('yyyy-MM-dd').format(event.date);
-
-    final prefs = await SharedPreferences.getInstance();
-    List<String> timeStamps = prefs.getStringList('timeStamps') ?? [];
-    String noteKey = "Notities: $dayKey";
-    String fullNote = timeStamps.firstWhere(
-      (element) => element.startsWith(noteKey),
-      orElse: () => "",
+  void _addEvent(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddEventScreen()),
     );
-    if (fullNote.isNotEmpty) {
-      noteText = fullNote.substring(noteKey.length + 3);
-    }
-    if (clockInEvents.isNotEmpty) {
-      clockInTime = DateFormat(
-        'HH:mm',
-      ).format(_extractDateFromTimeStamp(clockInEvents.first));
-    } else {
-      clockInTime = 'Niet ingeklokt';
-    }
-    if (clockOutEvents.isNotEmpty) {
-      clockOutTime = DateFormat(
-        'HH:mm',
-      ).format(_extractDateFromTimeStamp(clockOutEvents.first));
-    } else {
-      clockOutTime = "Niet uitgeklokt";
-    }
 
-    location = prefs.getString('currentLocation') ?? "Geen locatie beschikbaar";
+    if (result is Event) {
+      setState(() {
+        _events.add(result);
+      });
+    }
+  }
 
-    context.push(
-      '/event-details',
-      extra: {
-        'formattedDate': formattedDate,
-        'clockInTime': clockInTime,
-        'clockOutTime': clockOutTime,
-        'noteText': noteText,
-        'location': location,
-        'date': event.date,
-      },
+  void _editEvent(BuildContext context, Event event) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditEventScreen(event: event)),
     );
+
+    if (result is Event) {
+      setState(() {
+        final index = _events.indexOf(event);
+        if (index != -1) {
+          _events[index] = result;
+        }
+      });
+    }
+  }
+
+  void _deleteEvent(Event event) {
+    setState(() {
+      _events.remove(event);
+    });
+  }
+
+  void _showEventDetails(BuildContext context, Event event) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EventDetailsScreen(event: event)),
+    );
+    if (result is Event) {
+      _deleteEvent(result);
+    } else if (result is String && result == 'edit') {
+      _editEvent(context, event);
+    }
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
+      if (_calendarView == CalendarView.month) {
+        _calendarView = CalendarView.day;
+      }
+    });
+  }
+
+  void _onViewChanged(CalendarView view) {
+    setState(() {
+      _calendarView = view;
+      if (view == CalendarView.month) {
+        _selectedDay = DateTime.now();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: HeaderBar(title: ''), // Use your custom HeaderBar
+      appBar: const HeaderBar(title: "Calendar"),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _addEvent(context),
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
-          _buildViewTypeButtons(),
-          Expanded(child: _getCurrentView()),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _createEvent(DateTime.now()),
-        child: Icon(Icons.add, color: Colors.white),
-        backgroundColor: const Color(0xff13263B),
-      ),
-    );
-  }
-
-  Widget _buildViewTypeButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildViewTypeButton('Month'),
-            _buildViewTypeButton('Week'),
-            _buildViewTypeButton('Day'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildViewTypeButton(String viewType) {
-    bool isSelected = _currentViewType == viewType;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: TextButton(
-        onPressed: () {
-          setState(() {
-            _currentViewType = viewType;
-          });
-        },
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected ? Colors.blue : Colors.transparent,
-          foregroundColor: isSelected ? Colors.white : Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Text(viewType),
-        ),
-      ),
-    );
-  }
-
-  Widget _getCurrentView() {
-    switch (_currentViewType) {
-      case 'Week':
-        return WeekView(
-          headerStyle:
-              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
-          controller: _eventController,
-          onEventTap: (events, date) {
-            _viewEventDetails(events.first);
-          },
-        );
-      case 'Day':
-        return DayView(
-          headerStyle:
-              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
-          controller: _eventController,
-          onEventTap: (events, date) {
-            _viewEventDetails(events.first);
-          },
-        );
-      case 'Month':
-      default:
-        return MonthView(
-          controller: _eventController,
-          onCellTap: (events, date) {
-            if (events.isNotEmpty) {
-              _viewEventDetails(events.first);
-            } else {
-              _createEvent(date);
-            }
-          },
-          headerStyle:
-              HeaderStyle(decoration: BoxDecoration(color: Colors.blue[100])),
-          headerBuilder: (date) {
-            return Container(
-              decoration: BoxDecoration(color: Colors.blue[100]),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildMonthNavigationButton(Icons.chevron_left, -1),
-                  Text(DateFormat("MMMM yyyy").format(_currentMonth)),
-                  _buildMonthNavigationButton(Icons.chevron_right, 1),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              DropdownButton<CalendarView>(
+                value: _calendarView,
+                onChanged: (CalendarView? newValue) {
+                  if (newValue != null) {
+                    _onViewChanged(newValue);
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(
+                    value: CalendarView.month,
+                    child: Text('Month'),
+                  ),
+                  DropdownMenuItem(
+                    value: CalendarView.week,
+                    child: Text('Week'),
+                  ),
+                  DropdownMenuItem(value: CalendarView.day, child: Text('Day')),
                 ],
               ),
-            );
-            );
-          },
-        );
-    }
+            ],
+          ),
+          if (_calendarView == CalendarView.month)
+            TableCalendar(
+              calendarStyle: const CalendarStyle(
+                // Hier verwijderen we de filters
+                cellMargin: EdgeInsets.zero,
+                cellAlignment: Alignment.center,
+              ),
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false, // Verberg de knop voor de weergave
+              ),
+              calendarFormat: _calendarFormat,
+              focusedDay: _focusedDay,
+              firstDay: DateTime.utc(2010, 10, 16),
+              lastDay: DateTime.utc(2030, 3, 14),
+              selectedDayPredicate: (day) {
+                return isSameDay(_selectedDay, day);
+              },
+              onDaySelected: _onDaySelected,
+              onFormatChanged: (format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              },
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+              eventLoader: _getEventsForDay,
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, day, events) {
+                  if (events.isNotEmpty) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:
+                          events
+                              .map((e) => EventIndicator(event: e as Event))
+                              .toList(),
+                    );
+                  }
+                  return null;
+                },
+              ),
+            ),
+          if (_calendarView == CalendarView.week)
+            Expanded(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final firstDayOfWeek = _focusedDay.subtract(
+                    Duration(days: _focusedDay.weekday - 1),
+                  );
+                  final weekEvents = _getEventsForWeek(firstDayOfWeek);
+                  return SingleChildScrollView(
+                    child: SizedBox(
+                      height: 1440, // 24 uur * 60 minuten per uur
+                      child: Stack(
+                        children: [
+                          // Verticale lijnen
+                          ...List.generate(7, (index) {
+                            return Positioned(
+                              top: 0,
+                              bottom: 0,
+                              left:
+                                  50 +
+                                  (index *
+                                      (MediaQuery.of(context).size.width - 50) /
+                                      7),
+                              child: Container(
+                                width: 1,
+                                color: Colors.grey.shade300,
+                              ),
+                            );
+                          }),
+                          // Roosterlijnen
+                          ...List.generate(24, (index) {
+                            return Positioned(
+                              top: index * 60.0,
+                              left: 50, // Pas dit aan
+                              right: 0,
+                              child: Container(
+                                height: 1,
+                                color: Colors.grey.shade300,
+                              ),
+                            );
+                          }),
+                          // Uren kolom
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: SizedBox(
+                              width: 50,
+                              child: ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: 24,
+                                itemBuilder: (context, index) {
+                                  return HourTile(
+                                    hour:
+                                        '${index.toString().padLeft(2, '0')}:00',
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          // Dagen kolom
+                          Positioned(
+                            left: 50,
+                            top: 0,
+                            right: 0,
+                            child: Row(
+                              children: List.generate(7, (index) {
+                                final day = firstDayOfWeek.add(
+                                  Duration(days: index),
+                                );
+                                return Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '${day.day}/${day.month}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                          ...[
+                            for (int i = 0; i < 7; i++)
+                              for (int j = 0; j < weekEvents[i].length; j++)
+                                EventHourTile(
+                                  event: weekEvents[i][j],
+                                  index: j,
+                                  totalEvents: weekEvents[i].length,
+                                  dayIndex: i,
+                                  calendarView:
+                                      _calendarView, // Geef de huidige weergave mee
+                                  showEventDetails: _showEventDetails,
+                                ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          if (_calendarView == CalendarView.day)
+            Expanded(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return SingleChildScrollView(
+                    child: SizedBox(
+                      height: 1440, // 24 uur * 60 minuten per uur
+                      child: Stack(
+                        children: [
+                          // Roosterlijnen
+                          ...List.generate(24, (index) {
+                            return Positioned(
+                              top: index * 60.0,
+                              left: 50,
+                              right: 0,
+                              child: Container(
+                                height: 1,
+                                color: Colors.grey.shade300,
+                              ),
+                            );
+                          }),
+                          // Uren kolom
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: SizedBox(
+                              width: 50,
+                              child: ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: 24,
+                                itemBuilder: (context, index) {
+                                  return HourTile(
+                                    hour:
+                                        '${index.toString().padLeft(2, '0')}:00',
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          ...[
+                            for (
+                              int i = 0;
+                              i < _getEventsForDay(_selectedDay).length;
+                              i++
+                            )
+                              EventHourTile(
+                                event: _getEventsForDay(_selectedDay)[i],
+                                index: i,
+                                totalEvents:
+                                    _getEventsForDay(_selectedDay).length,
+                                dayIndex: 0,
+                                calendarView:
+                                    _calendarView, // Geef de huidige weergave mee
+                                showEventDetails: _showEventDetails,
+                              ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          if (_calendarView == CalendarView.month)
+            Expanded(
+              child: ListView.builder(
+                itemCount: _upcomingEvents.length,
+                itemBuilder: (context, index) {
+                  final event = _upcomingEvents[index];
+                  return GestureDetector(
+                    onTap: () => _showEventDetails(context, event),
+                    child: EventTile(
+                      event: event,
+                      onDelete: () => _deleteEvent(event),
+                      onEdit: () => _editEvent(context, event),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
+
+// CalendarView enum
+enum CalendarView { month, week, day }
