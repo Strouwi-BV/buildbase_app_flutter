@@ -24,6 +24,8 @@ class Event {
     this.color = Colors.blue,
   });
 
+/*************  ✨ Codeium Command ⭐  *************/
+/******  0ec63dc3-77de-4a76-9f28-7c9d0e35267e  *******/
   bool overlapsWith(Event other) {
     return startTime.isBefore(other.endTime) && endTime.isAfter(other.startTime);
   }
