@@ -8,11 +8,11 @@ class ProjectModel {
   final bool active;
   final String registrationDate;
   final String startDate;
-  final String endDate;
+  final String? endDate;
   final bool archived;
-  final AddressModel address;
-  final List<ContactModel> contactList;
-  final ExternalReferenceModel externalReference;
+  final AddressModel? address;
+  final List<ContactModel?> contactList;
+  final ExternalReferenceModel? externalReference;
   final String functionalId;
 
   ProjectModel({
@@ -35,15 +35,21 @@ class ProjectModel {
       projectName: json['projectName'], 
       active: json['active'], 
       registrationDate: json['registrationDate'], 
-      startDate: json['startDate'], 
-      endDate: json['endDate'], 
-      archived: json['archived'],
-      address: json['address'],
-      contactList: (json['contactList'] as List<dynamic>)
+      startDate: json['startDate'] ?? "", 
+      endDate: json['endDate'] ?? "", 
+      archived: json['archived'] ?? false,
+      address: json['address'] == null
+                ? null
+                : AddressModel.fromJson(json['address'] as Map<String, dynamic>),
+      contactList: json['contactList'] == null
+                ? []
+                : (json['contactList'] as List<dynamic> )
                 .map((contact) => ContactModel.fromJson(contact))
                 .toList(), 
-      externalReference: ExternalReferenceModel.fromJson(json['externalReference']), 
-      functionalId: json['functionalId'],
+      externalReference: json['externalReference'] == null
+                ? null
+                : ExternalReferenceModel.fromJson(json['externalReference']),
+      functionalId: json['functionalId'] ?? "",
     );
   }
 
@@ -54,13 +60,13 @@ class ProjectModel {
       'active': active,
       'registrationDate': registrationDate,
       'startDate': startDate,
-      'endDate': endDate,
+      'endDate': endDate!,
       'archived': archived,
-      'address': address.toJson(),
+      'address': address?.toJson(),
       'contactList': contactList
-                .map((c) => c.toJson())
+                .map((c) => c?.toJson())
                 .toList(),
-      'externalReference': externalReference.toJson(),
+      'externalReference': externalReference?.toJson(),
       'functionalId': functionalId,
     };
   }

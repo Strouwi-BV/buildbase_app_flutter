@@ -7,7 +7,11 @@ import '/service/timer_service.dart';
 import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/project_model.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
-
+import 'package:buildbase_app_flutter/service/location_service.dart';
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
+import 'package:flutter/material.dart';
+import 'header_bar_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
@@ -17,102 +21,97 @@ class ClockInScreen extends StatefulWidget {
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
+  final SecureStorageService secure = SecureStorageService();
+  final LocationService location = LocationService();
+  final apiService = ApiService();
+  
   late String _startTime;
   late String _endTime;
-  String _selectedClient = ''; // Standaardwaarden
-  String _selectedProject = '';
-  List<ClientResponse> _clients = [];
-  List<ProjectModel> _projects = [];
+  List<ClientResponse> clients = [];
+  List<ProjectModel> projects = [];
 
-  // Functie om de lijst van klanten op te halen
-  Future<void> _fetchClients() async {
-  try {
-    ApiService apiService = ApiService();
-    List<ClientResponse> clients = await apiService.getClients(); 
-    print("Fetched clients: $clients");  // Voeg print toe
-    setState(() {
-      _clients = clients;
-      if (_clients.isNotEmpty) {
-        _selectedClient = _clients[0].clientName;
-      }
-    });
-  } catch (e) {
-    print("Error fetching clients: $e");
-  }
-}
-  // Functie om de lijst van projecten op te halen
-  Future<void> _fetchProjects(String clientId) async {
-  try {
-    ApiService apiService = ApiService();
-    List<ProjectModel> projects = await apiService.getProjects(clientId); 
-    print("Fetched projects: $projects");  // Voeg print toe
-    setState(() {
-      _projects = projects;
-      if (_projects.isNotEmpty) {
-        _selectedProject = _projects[0].projectName;
-      }
-    });
-  } catch (e) {
-    print("Error fetching projects: $e");
-  }
-}
+  ClientResponse? selectedClient;
+  ProjectModel? selectedProject;
+  bool isLoadingProjects = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchClients();
-    _fetchProjects(_selectedClient);
+    _loadClients();
+
   }
 
-  
+  Future<void> _loadClients() async {
+    List<ClientResponse> fetchedClients = await apiService.getClients();
+    setState(() {
+      clients = fetchedClients;
+    });
+  }
 
- void _startClockIn() {
-  final timerProvider = Provider.of<TimerProvider>(context, listen: false);
-  final startTime = TimeOfDay.now().format(context);
+  Future<void> _loadProjects(ClientResponse client) async {
+    setState(() {
+      isLoadingProjects = true;
+      selectedProject = null;
+      projects = [];
+    });
 
-  timerProvider.setStartTime(startTime); // Sla de starttijd op
-  timerProvider.startTimer(); // Start de timer
+    List<ProjectModel> fetchedProjects = await apiService.getProjects(client.id);
 
-  setState(() {
-    _startTime = startTime;
-    _endTime = TimeOfDay.now().format(context);
-  });
+    setState(() {
+      projects = fetchedProjects;
+      isLoadingProjects = false;
+    });
+  }
 
-  // Navigeer naar RegistrationOverviewScreen en geef de benodigde data door
-  context.go(
-    '/registration-overview',
-    extra: {
-      'startDate': DateTime.now().toIso8601String(),
-      'startTime': startTime, // Gebruik de opgeslagen starttijd
-      'endDate': DateTime.now().toIso8601String(),
-      'clientName': _selectedClient,
-      'projectName': _selectedProject,
-      'date': '27/02/2025', // Vervang dit door dynamische data
-    },
-  );
-}
+  void _onClientSelected(ClientResponse? client) {
+    if (client != null) {
+      setState(() {
+        selectedClient = client;
+        secure.writeData('selectedClient', client.id);
+        _loadProjects(client);
+      });
+    }
+  }
+
+  void _onProjectSelected(ProjectModel? project) {
+    if (project != null) {
+      setState(() {
+        selectedProject = project;
+      });
+    }
+  }
+
+  void _startClockIn() {
+    setState(() {
+      _startTime = TimeOfDay.now().format(context);
+      _endTime = TimeOfDay.now().format(context);
+    });
+
+    // Navigate to RegistrationOverviewScreen and pass the selected values
+    context.go(
+      '/registration-overview',
+      extra: {
+        'startTime': _startTime,
+        // 'clientName': _selectedClient,
+        // 'projectName': _selectedProject,
+        'startDate': DateTime.now().toIso8601String(),
+        'endDate': DateTime.now().toIso8601String(),
+        'endTime': _endTime,
+        'date': '27/02/2025' // You can make this dynamic
+      },
+    );
+
+    // Future<void> _loadClients() async {
+    //   List<ClientResponse> fetchedClients = await apiService.getClients();
+    // }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final timerProvider = Provider.of<TimerProvider>(context);
-
-    // Als de timer loopt, laat een bericht zien dat de gebruiker naar de overview moet gaan
-    if (timerProvider.elapsedTime != "00:00:00") {
-      return Scaffold(
-        appBar: const HeaderBar(userName: 'Tom Peeters'),
-        body: Center(
-          child: Text(
-            'Clock-in is al gestart. Ga naar de overview om te stoppen.',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-        ),
-      );
-    }
-
     _startTime = TimeOfDay.now().format(context);
 
     return Scaffold(
-      appBar: const HeaderBar(userName: 'Tom Peeters'),
+      appBar: const HeaderBar(userName: "Test"),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -136,20 +135,16 @@ class _ClockInScreenState extends State<ClockInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButton<String>(
+                  DropdownButton<ClientResponse>(
                     isExpanded: true,
-                    value: _selectedClient,
-                    items: _clients.map((ClientResponse client) {
-                      return DropdownMenuItem<String>(
-                        value: client.clientName,
+                    value: selectedClient,
+                    items: clients.map((ClientResponse client) {
+                      return DropdownMenuItem<ClientResponse>(
+                        value: client,
                         child: Text(client.clientName),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedClient = newValue!;
-                      });
-                    },
+                    onChanged: _onClientSelected,
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],
@@ -164,20 +159,17 @@ class _ClockInScreenState extends State<ClockInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButton<String>(
+                  DropdownButton<ProjectModel>(
                     isExpanded: true,
-                    value: _selectedProject,
-                    items: _projects.map((ProjectModel project) {
-                      return DropdownMenuItem<String>(
-                        value: project.projectName,
+                    value: selectedProject,
+                    items: projects.map((ProjectModel project) {
+                      return DropdownMenuItem<ProjectModel>(
+                        value: project,
                         child: Text(project.projectName),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedProject = newValue!;
-                      });
-                    },
+                    onChanged: selectedClient == null ? null : _onProjectSelected,
+                    disabledHint: Text('Select a client first'),
                   ),
                   Container(height: 1, color: Colors.black54),
                 ],

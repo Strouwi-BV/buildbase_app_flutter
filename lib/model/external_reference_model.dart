@@ -1,5 +1,5 @@
 class ExternalReferenceModel {
-  final String declarationOfWork;
+  final String? declarationOfWork;
 
   ExternalReferenceModel({
     required this.declarationOfWork
@@ -7,13 +7,13 @@ class ExternalReferenceModel {
 
   factory ExternalReferenceModel.fromJson(Map<String, dynamic> json) {
     return ExternalReferenceModel(
-      declarationOfWork: json['declarationOfWork']
+      declarationOfWork: json['externalReference']?['declarationOfWork'] as String?
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'declarationOfWork': declarationOfWork,
+      'declarationOfWork': [declarationOfWork],
     };
   }
 }

@@ -20,12 +20,12 @@ class ContactModel {
   factory ContactModel.fromJson(Map<String, dynamic> json) {
     return ContactModel(
       id: json['id'], 
-      firstName: json['firstName'], 
-      lastName: json['lastName'], 
-      phone: json['phone'], 
-      email: json['email'], 
-      primaryContact: json['primaryContact'], 
-      jobTitle: json['jobTitle']
+      firstName: json['firstName'] ?? "", 
+      lastName: json['lastName'] ?? "", 
+      phone: json['phone'] ?? "", 
+      email: json['email'] ?? "", 
+      primaryContact: json['primaryContact'] ?? "", 
+      jobTitle: json['jobTitle'] ?? ""
     );
   }
 

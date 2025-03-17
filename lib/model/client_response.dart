@@ -12,9 +12,9 @@ class ClientResponse {
   final String startDate;
   final String endDate;
   final bool archived;
-  final AddressModel address;
-  final List<ContactModel> contactList;
-  final String vat;
+  final AddressModel? address;
+  final List<ContactModel?> contactList;
+  final String? vat;
   final String functionalId;
 
   ClientResponse({
@@ -46,11 +46,15 @@ class ClientResponse {
       startDate: json['startDate'], 
       endDate: json['endDate'], 
       archived: json['archived'], 
-      address: AddressModel.fromJson(json['address']), 
-      contactList: (json['contactList'] as List<dynamic> )
+      address: json['address'] == null
+                ? null
+                : AddressModel.fromJson(json['address'] as Map<String, dynamic>), 
+      contactList: json['contactList'] == null
+                ? []
+                : (json['contactList'] as List<dynamic> )
                 .map((contact) => ContactModel.fromJson(contact))
                 .toList(), 
-      vat: json['vat'], 
+      vat: json['vat'] as String?, 
       functionalId: json['functionalId'],
     );
   }
@@ -66,8 +70,8 @@ class ClientResponse {
       'startDate': startDate,
       'endDate': endDate,
       'archived': archived,
-      'address': address.toJson(),
-      'contactList': contactList.map((c) => c.toJson()).toList(),
+      'address': address?.toJson(),
+      'contactList': contactList.map((c) => c!.toJson()).toList(),
       'vat': vat,
       'functionalId': functionalId,
     };

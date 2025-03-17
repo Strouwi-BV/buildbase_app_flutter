@@ -1,12 +1,12 @@
 class AddressModel {
 
-  final String city;
-  final String postalCode;
-  final String countryCode;
-  final String region;
-  final String street;
-  final String number;
-  final String bus;
+  final String? city;
+  final String? postalCode;
+  final String? countryCode;
+  final String? region;
+  final String? street;
+  final String? number;
+  final String? bus;
 
   AddressModel({
     required this.city,

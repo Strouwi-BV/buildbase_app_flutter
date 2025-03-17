@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:buildbase_app_flutter/model/login_response.dart';
 import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/project_model.dart';
+import 'package:buildbase_app_flutter/service/no_redirects_client.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -48,59 +49,58 @@ class ApiService {
     }
   }
   Future<List<ClientResponse>> getClients() async {
-  String? token = await _secureStorage.readData('token');
-  String? organization = await _secureStorage.readData('organizationId');
-  String? userId = await _secureStorage.readData('userId');
 
-  final url = Uri.parse('$_baseUrl/clients/active/user'); // Typfout gecorrigeerd
-  final headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer $token',
-    'Organization': '$organization'
-  };
+    String? token = await _secureStorage.readData('token');
+    String? organization = await _secureStorage.readData('organizationId');
+    String? userId = await _secureStorage.readData('id');
+    userId = await _secureStorage.readData('id');
 
-  try {
-    final response = await http.get(url, headers: headers);
+    final param =  {'userId': '$userId'};
+    final url = Uri.parse('$_baseUrl/clients/active/user').replace(queryParameters: {
+      'userId': userId,
+    });
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Organization': '$organization'
+    };
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      print('Response is 200 client');
-      return data.map((json) => ClientResponse.fromJson(json)).toList();
-    } else {
-      print('Failed to load clients: ${response.statusCode} - ${response.body}');
-      throw Exception("Failed to load clients");
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        print('Response is 200 client');
+        return data.map((json) => ClientResponse.fromJson(json)).toList();
+      } else {
+        throw Exception("Failed to load clients");
+      }
+    } catch (e) {
+      print('Error fetching clients: $e');
+      throw Exception(e);
     }
-  } catch (e) {
-    print('Error fetching clients: $e');
-    throw Exception("Error fetching clients: $e");
   }
-}
 
-Future<List<ProjectModel>> getProjects(String clientId) async {
-  String? token = await _secureStorage.readData('token');
-  String? organization = await _secureStorage.readData('organizationId');
+  //GET /clients/{clientId}/projects
+  Future <List<ProjectModel>> getProjects(String clientId) async {
 
-  final url = Uri.parse('$_baseUrl/clients/$clientId/projects'); // Correcte URL
-  final headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer $token',
-    'Organization': '$organization'
-  };
+    String? token = await _secureStorage.readData('token');
+    print(clientId);
+    final url = Uri.parse('$_baseUrl/clients/$clientId/projects');
+    final headers = {
+      'Content-Type' : 'application/json',
+      'Authorization' : 'Bearer $token'
+    };
+    final client = NoRedirectsClient();
+    final response = await client.get(url, headers: headers);
 
-  try {
-    final response = await http.get(url, headers: headers);
-
-    if (response.statusCode == 200) {
+    if (response.statusCode == 302) {
+      print('Response is 302 project');
       List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => ProjectModel.fromJson(json)).toList();
     } else {
-      print('Failed to load projects: ${response.statusCode} - ${response.body}');
-      throw Exception("Failed to load projects");
-    }
-  } catch (e) {
-    print('Error fetching projects: $e');
-    throw Exception("Error fetching projects: $e");
-  }
-}
+      print('Failed to load projects: ${response.statusCode}');
+      throw Exception("Failed to load projects: ${response.statusCode}");
+    } 
 
+  }
 }
