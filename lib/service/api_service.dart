@@ -44,10 +44,7 @@ class ApiService {
           'organizationId',
           loginResponse.organizationId,
         );
-        final avatarUrl = await ApiService().usersAvatarComplete();
-        if (avatarUrl != null && avatarUrl.isNotEmpty) {
-          await _secureStorage.writeData('avatarUrl', avatarUrl);
-        }
+        await ApiService().usersAvatarComplete();
         print('Login successful');
         return loginResponse;
       } else {
@@ -188,6 +185,7 @@ class ApiService {
     }
     final url =
         '$avatarLink?timeStopCache=${DateTime.now() /*.millisecondsSinceEpoch*/}&${await usersAvatarSas()}&';
+    await _secureStorage.writeData('avatarUrl', url);
 
     return url;
   }

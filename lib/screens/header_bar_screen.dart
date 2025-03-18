@@ -3,72 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
+class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showProfile;
   const HeaderBar({Key? key, this.showProfile = true}) : super(key: key);
 
   @override
-  State<HeaderBar> createState() => _HeaderBarState();
-
-  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-class _HeaderBarState extends State<HeaderBar> {
-  final _secureStorage = const FlutterSecureStorage();
-  String? _profileImageUrl;
-  String _userName = 'User Name';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileData();
-  }
-
-  Future<void> _loadProfileData() async {
-    await _loadUserName();
-    await _loadProfileImage();
-  }
-
-  Future<void> _loadUserName() async {
-    final firstName = await ApiService().getUserFirstName();
-    final lastName = await ApiService().getUserLastName();
-    setState(() {
-      _userName =
-          (firstName != null && lastName != null)
-              ? '$firstName $lastName'
-              : 'User Name';
-    });
-  }
-
-  Future<void> _loadProfileImage() async {
-    String? storedAvatar = await _secureStorage.read(key: 'avatarUrl');
-    print('storedAvatar: $storedAvatar');
-    if (storedAvatar != null) {
-      setState(() {
-        _profileImageUrl = storedAvatar;
-      });
-      return;
-    }
-
-    final avatarUrl = await ApiService().usersAvatarComplete();
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      await _secureStorage.write(key: 'avatarUrl', value: avatarUrl);
-      setState(() {
-        _profileImageUrl = avatarUrl;
-      });
-    }
-  }
-
-  Future<void> _updateProfileImage() async {
-    final newAvatarUrl = await ApiService().usersAvatarComplete();
-    if (newAvatarUrl != null && newAvatarUrl.isNotEmpty) {
-      await _secureStorage.write(key: 'avatarUrl', value: newAvatarUrl);
-      setState(() {
-        _profileImageUrl = newAvatarUrl;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +28,7 @@ class _HeaderBarState extends State<HeaderBar> {
       ),
       centerTitle: false,
       actions:
-          widget.showProfile
+          showProfile
               ? [
                 Row(
                   children: [
@@ -120,7 +60,7 @@ class _HeaderBarState extends State<HeaderBar> {
               child: Column(
                 children: [
                   _buildProfileAvatar(),
-                  const SizedBox(width: 4),
+                  const SizedBox(height: 4),
                   FutureBuilder<String?>(
                     future: ApiService().getUserEmail(),
                     builder: (context, snapshot) {
@@ -160,17 +100,54 @@ class _HeaderBarState extends State<HeaderBar> {
   }
 
   Widget _buildProfileAvatar() {
-    if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      return CircleAvatar(backgroundImage: NetworkImage(_profileImageUrl!));
-    } else {
-      return CircleAvatar(
-        backgroundColor: Colors.blue,
-        child: Text(
-          _userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
+    const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+    return FutureBuilder<String?>(
+      future: _secureStorage.read(key: 'avatarUrl').then((storedAvatar) async {
+        if (storedAvatar != null) return storedAvatar;
+        final avatarUrl = await ApiService().usersAvatarComplete();
+        if (avatarUrl != null && avatarUrl.isNotEmpty) {
+          await _secureStorage.write(key: 'avatarUrl', value: avatarUrl);
+          return avatarUrl;
+        }
+        return null;
+      }),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircleAvatar(
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          );
+        }
+
+        final avatarUrl = snapshot.data;
+        if (avatarUrl != null && avatarUrl.isNotEmpty) {
+          return CircleAvatar(backgroundImage: NetworkImage(avatarUrl));
+        } else {
+          return CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: FutureBuilder<String?>(
+              future: _getUserInitials(),
+              builder: (context, initialsSnapshot) {
+                return Text(
+                  initialsSnapshot.data ?? '?',
+                  style: const TextStyle(color: Colors.white),
+                );
+              },
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Future<String> _getUserInitials() async {
+    final firstName = await ApiService().getUserFirstName();
+    final lastName = await ApiService().getUserLastName();
+    if (firstName != null && lastName != null) {
+      return '${firstName[0]}${lastName[0]}'.toUpperCase();
     }
+    return '?';
   }
 
   Future<void> _onMenuSelected(BuildContext context, int item) async {
@@ -179,9 +156,7 @@ class _HeaderBarState extends State<HeaderBar> {
         GoRouter.of(context).go('/profile/1');
         break;
       case 1:
-        GoRouter.of(
-          context,
-        ).push('/change-image').then((_) => _updateProfileImage());
+        GoRouter.of(context).push('/change-image');
         break;
       case 2:
         await ApiService().logout();
