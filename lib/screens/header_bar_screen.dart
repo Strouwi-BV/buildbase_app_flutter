@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
   final bool showProfile;
@@ -14,34 +15,59 @@ class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HeaderBarState extends State<HeaderBar> {
+  final _secureStorage = const FlutterSecureStorage();
   String? _profileImageUrl;
   String _userName = 'User Name';
+
   @override
   void initState() {
     super.initState();
-    _loadProfileImage();
-    _loadUserName();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    await _loadUserName();
+    await _loadProfileImage();
   }
 
   Future<void> _loadUserName() async {
     final firstName = await ApiService().getUserFirstName();
     final lastName = await ApiService().getUserLastName();
-    if (firstName == null || lastName == null) {
+    setState(() {
+      _userName =
+          (firstName != null && lastName != null)
+              ? '$firstName $lastName'
+              : 'User Name';
+    });
+  }
+
+  Future<void> _loadProfileImage() async {
+    String? storedAvatar = await _secureStorage.read(key: 'avatarUrl');
+    print('storedAvatar: $storedAvatar');
+    if (storedAvatar != null) {
       setState(() {
-        _userName = 'User Name';
+        _profileImageUrl = storedAvatar;
       });
-    } else {
+      return;
+    }
+
+    final avatarUrl = await ApiService().usersAvatarComplete();
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      await _secureStorage.write(key: 'avatarUrl', value: avatarUrl);
       setState(() {
-        _userName = '$firstName $lastName';
+        _profileImageUrl = avatarUrl;
       });
     }
   }
 
-  Future<void> _loadProfileImage() async {
-    final avatarUrl = await ApiService().usersAvatarComplete();
-    setState(() {
-      _profileImageUrl = avatarUrl;
-    });
+  Future<void> _updateProfileImage() async {
+    final newAvatarUrl = await ApiService().usersAvatarComplete();
+    if (newAvatarUrl != null && newAvatarUrl.isNotEmpty) {
+      await _secureStorage.write(key: 'avatarUrl', value: newAvatarUrl);
+      setState(() {
+        _profileImageUrl = newAvatarUrl;
+      });
+    }
   }
 
   @override
@@ -55,7 +81,6 @@ class _HeaderBarState extends State<HeaderBar> {
             icon: const Icon(Icons.menu),
             onPressed: () {
               String currentRoute = GoRouterState.of(context).matchedLocation;
-              print(currentRoute);
               GoRouter.of(context).push('/menu', extra: currentRoute);
             },
           );
@@ -80,7 +105,6 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileMenu(BuildContext context) {
     return PopupMenuButton<int>(
-      /*optie om naar MenuAnchor te veranderen*/
       icon: Row(
         children: [
           _buildProfileAvatar(),
@@ -94,25 +118,18 @@ class _HeaderBarState extends State<HeaderBar> {
             PopupMenuItem<int>(
               value: 0,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _buildProfileAvatar(),
-                      const SizedBox(width: 4),
-                      FutureBuilder<String?>(
-                        future: ApiService().getUserEmail(),
-                        builder: (context, snapshot) {
-                          return Text(
-                            snapshot.data ?? 'Laden...',
-                            textAlign: TextAlign.end,
-                            style: const TextStyle(color: Colors.grey),
-                          );
-                        },
-                      ),
-                    ],
+                  _buildProfileAvatar(),
+                  const SizedBox(width: 4),
+                  FutureBuilder<String?>(
+                    future: ApiService().getUserEmail(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? 'Laden...',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -144,9 +161,7 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileAvatar() {
     if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        backgroundImage: Image.network(_profileImageUrl!).image,
-      );
+      return CircleAvatar(backgroundImage: NetworkImage(_profileImageUrl!));
     } else {
       return CircleAvatar(
         backgroundColor: Colors.blue,
@@ -164,7 +179,9 @@ class _HeaderBarState extends State<HeaderBar> {
         GoRouter.of(context).go('/profile/1');
         break;
       case 1:
-        GoRouter.of(context).push('/change-image');
+        GoRouter.of(
+          context,
+        ).push('/change-image').then((_) => _updateProfileImage());
         break;
       case 2:
         await ApiService().logout();

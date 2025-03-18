@@ -25,7 +25,6 @@ class ApiService {
     final url = Uri.parse('$_baseUrl/users/login');
     final headers = {'Content-Type': 'application/hal+json'};
     final body = jsonEncode({'email': email, 'password': password});
-
     try {
       final response = await http.post(url, headers: headers, body: body);
       print('In try...');
@@ -45,7 +44,10 @@ class ApiService {
           'organizationId',
           loginResponse.organizationId,
         );
-
+        final avatarUrl = await ApiService().usersAvatarComplete();
+        if (avatarUrl != null && avatarUrl.isNotEmpty) {
+          await _secureStorage.writeData('avatarUrl', avatarUrl);
+        }
         print('Login successful');
         return loginResponse;
       } else {
@@ -181,13 +183,11 @@ class ApiService {
 
   Future<String?> usersAvatarComplete() async {
     final String? avatarLink = await usersAvatarLink();
-    print('avatarLink: $avatarLink');
     if (await avatarLink == '') {
       return null;
     }
     final url =
         '$avatarLink?timeStopCache=${DateTime.now() /*.millisecondsSinceEpoch*/}&${await usersAvatarSas()}&';
-    print('urll: $url');
 
     return url;
   }
