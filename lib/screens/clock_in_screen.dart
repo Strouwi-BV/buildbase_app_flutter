@@ -1,3 +1,8 @@
+import 'package:buildbase_app_flutter/model/client_response.dart';
+import 'package:buildbase_app_flutter/model/project_model.dart';
+import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
@@ -111,7 +116,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     _startTime = TimeOfDay.now().format(context);
 
     return Scaffold(
-      appBar: const HeaderBar(userName: "Test"),
+      appBar: const HeaderBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

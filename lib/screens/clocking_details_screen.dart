@@ -9,7 +9,7 @@ class ClockingDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Set your background color here
-      appBar: const HeaderBar(userName: 'Tom Peeters'), // Use HeaderBar here
+      appBar: const HeaderBar(), // Use HeaderBar here
       drawer: Drawer(
         child: SingleChildScrollView(
           child: Column(

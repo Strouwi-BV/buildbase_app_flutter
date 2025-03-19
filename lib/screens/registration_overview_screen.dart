@@ -64,25 +64,35 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   }
 
   @override
-Widget build(BuildContext context) {
-  final timerProvider = Provider.of<TimerProvider>(context);
-
-  return Scaffold(
-    appBar: const HeaderBar(userName: 'Tom Peeters'),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Registratie',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Row(
+  Widget build(BuildContext context) {
+    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+    return Scaffold(
+      appBar: const HeaderBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Registratie',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Row(
+                  children: [
+                    const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text('Terug naar ${widget.date}',
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
                 children: [
                   const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
                   const SizedBox(width: 4),
@@ -91,35 +101,35 @@ Widget build(BuildContext context) {
                           fontSize: 14, color: Colors.grey)),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                    child: _buildUnderlinedField(
-                        'Van Dag *',
-                        _formatDate(widget.startDate),
-                        Icons.calendar_today)),
-                const SizedBox(width: 16),
-                Expanded(
-                    child: _buildUnderlinedField(
-                        'Van Uur *', timerProvider.startTime, Icons.access_time)), // Gebruik de opgeslagen starttijd
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                    child: _buildUnderlinedField(
-                        'Tot Dag *',
-                        _formatDate(widget.endDate),
-                        Icons.calendar_today)),
-                const SizedBox(width: 16),
-                Expanded(
-                    child: _buildUnderlinedField(
-                        'Tot Uur *', _currentTime, Icons.access_time)),
-              ],
-            ),
+            // ],
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                      child: _buildUnderlinedField(
+                          'Van Dag *',
+                          _formatDate(widget.startDate),
+                          Icons.calendar_today)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: _buildUnderlinedField(
+                          'Van Uur *', timerProvider.startTime, Icons.access_time)), // Gebruik de opgeslagen starttijd
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                      child: _buildUnderlinedField(
+                          'Tot Dag *',
+                          _formatDate(widget.endDate),
+                          Icons.calendar_today)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: _buildUnderlinedField(
+                          'Tot Uur *', _currentTime, Icons.access_time)),
+                ],
+              ),
               const SizedBox(height: 24),
               _buildDropdownField('Klantnaam *', widget.clientName,
                   showIcon: false),
@@ -166,79 +176,79 @@ Widget build(BuildContext context) {
   }
 }
 
-  String _formatDate(String date) {
-    // Verwijder het tijdgedeelte (indien aanwezig) en behoud alleen de datum
-    List<String> parts = date.split('T')[0].split('-');
-    return "${parts[2]}/${parts[1]}/${parts[0]}"; // Format naar DD/MM/YYYY
-  }
+String _formatDate(String date) {
+  // Verwijder het tijdgedeelte (indien aanwezig) en behoud alleen de datum
+  List<String> parts = date.split('T')[0].split('-');
+  return "${parts[2]}/${parts[1]}/${parts[0]}"; // Format naar DD/MM/YYYY
+}
 
-  Widget _buildUnderlinedField(
-      String label, String value, IconData? icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontSize: 16, color: Colors.black),
-              ),
+Widget _buildUnderlinedField(
+    String label, String value, IconData? icon) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
             ),
-            if (icon != null) Icon(icon, size: 24, color: Colors.grey),
-          ],
-        ),
-        const Divider(color: Colors.grey, thickness: 1),
-      ],
-    );
-  }
+          ),
+          if (icon != null) Icon(icon, size: 24, color: Colors.grey),
+        ],
+      ),
+      const Divider(color: Colors.grey, thickness: 1),
+    ],
+  );
+}
 
-  Widget _buildDropdownField(String label, String value,
-      {bool showIcon = true}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontSize: 16, color: Colors.black),
-              ),
+Widget _buildDropdownField(String label, String value,
+    {bool showIcon = true}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
             ),
-            if (showIcon)
-              const Icon(Icons.arrow_drop_down, size: 24, color: Colors.grey),
-          ],
-        ),
-        const Divider(color: Colors.grey, thickness: 1),
-      ],
-    );
-  }
+          ),
+          if (showIcon)
+            const Icon(Icons.arrow_drop_down, size: 24, color: Colors.grey),
+        ],
+      ),
+      const Divider(color: Colors.grey, thickness: 1),
+    ],
+  );
+}
  
 Widget _buildTextField(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        maxLines: 3,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.grey),
-          border: const OutlineInputBorder(),
-        ),
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: TextField(
+      maxLines: 3,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        border: const OutlineInputBorder(),
       ),
-    );
-  }
+    ),
+  );
+}
 
 

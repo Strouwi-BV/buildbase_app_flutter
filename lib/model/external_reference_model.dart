@@ -13,7 +13,7 @@ class ExternalReferenceModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'declarationOfWork': [declarationOfWork],
+      'declarationOfWork': declarationOfWork,
     };
   }
 }
