@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/clocking_temp_work_response.dart';
@@ -27,7 +29,6 @@ class ApiService {
     final url = Uri.parse('$_baseUrl/users/login');
     final headers = {'Content-Type': 'application/hal+json'};
     final body = jsonEncode({'email': email, 'password': password});
-
     try {
       final response = await http.post(url, headers: headers, body: body);
       print('In try...');
@@ -43,8 +44,11 @@ class ApiService {
         await _secureStorage.writeData('firstName', loginResponse.firstName);
         await _secureStorage.writeData('lastName', loginResponse.lastName);
         await _secureStorage.writeData('email', loginResponse.email);
-        await _secureStorage.writeData('organizationId', loginResponse.organizationId);
-
+        await _secureStorage.writeData(
+          'organizationId',
+          loginResponse.organizationId,
+        );
+        await ApiService().usersAvatarComplete();
         print('Login successful');
         return loginResponse;
       } else {
@@ -123,7 +127,31 @@ class ApiService {
     }
   }
 
-//GET /fileExport/blob/sas
+  Future<void> deleteAvatar() async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    if (userId == null || organizationId == null || token == null) {
+      throw Exception("User ID, Organization ID of Token ontbreekt.");
+    }
+
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/avatar');
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+      'Authorization': 'Bearer $token',
+    };
+
+    final http.Response response = await http.delete(url, headers: headers);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception("Fout bij verwijderen avatar: ${response.body}");
+    }
+  }
+
   Future<String?> usersAvatarSas() async {
     final String? organizationId = await _secureStorage.readData(
       'organizationId',
@@ -158,45 +186,68 @@ class ApiService {
   //Create full link to get Avatar
   Future<String?> usersAvatarComplete() async {
     final String? avatarLink = await usersAvatarLink();
-    print('avatarLink: $avatarLink');
     if (await avatarLink == '') {
       return null;
     }
     final url =
         '$avatarLink?timeStopCache=${DateTime.now() /*.millisecondsSinceEpoch*/}&${await usersAvatarSas()}&';
-    print('urll: $url');
+    await _secureStorage.writeData('avatarUrl', url);
 
     return url;
+  }
+
+  Future<String?> usersAvatarPost(File? image) async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    if (userId == null || organizationId == null || token == null) {
+      throw Exception("User ID, Organization ID of Token ontbreekt.");
+    }
+    if (image == null) {
+      throw Exception("Geen afbeelding geselecteerd.");
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/avatar');
+
+    var request =
+        http.MultipartRequest('POST', url)
+          ..headers.addAll({
+            'Authorization': 'Bearer $token',
+            'Organization': organizationId,
+          })
+          ..files.add(
+            await http.MultipartFile.fromPath(
+              'file',
+              image.path,
+              contentType: MediaType('image', 'webp'),
+            ),
+          );
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      print("Avatar succesvol geüpload!");
+    } else {
+      throw Exception("Fout bij uploaden van avatar: ${response.statusCode}");
+    }
+    return null;
   }
 
   Future<void> logout() async {
     await _secureStorage.deleteAllData();
   }
 
-///baseurl/users/{userId}/avatar
-///Request Method:GET
-///GET /fileExport/blob/sas
-///https://sablobstoragedevnortheu.blob.core.windows.net/67c858c483fe595f6082632e/users/67c858c5f034282c4b051bf4/avatar.jpg
-///?
-///timeStopCache=1741359729444
-///&
-///sv=2023-11-03&st=2025-03-07T14%3A57%3A12Z&se=2025-03-07T16%3A02%3A12Z&sr=c&sp=r&sig=p52fdNN54gGZqdSRrvbsAP4p5CZXuL3F9vdeyMX%2B1VA%3D
-///&
-
   //GET /clockings/temp-work
   Future<ClockingTempWorkResponse?> getTempWork() async {
-
     String? token = await _secureStorage.readData('token');
 
-
     final url = Uri.parse('$_baseUrl/clockings/temp-work');
-    final headers = {
-      'Authorization' : 'Bearer $token',
-    };
-
+    final headers = {'Authorization': 'Bearer $token'};
 
     try {
-
       final response = await http.get(url, headers: headers);
       print('In tempwork try');
       print('Statuscode: ${response.statusCode}');
@@ -204,24 +255,37 @@ class ApiService {
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         final tempWorkClockIn = ClockingTempWorkResponse.fromJson(jsonResponse);
-        final String startTimeJson = json.encode(tempWorkClockIn.startTime.toJson());
+        final String startTimeJson = json.encode(
+          tempWorkClockIn.startTime.toJson(),
+        );
         final String endTimeJson = json.encode(tempWorkClockIn.endTime);
-        final String locationJson = json.encode(tempWorkClockIn.clockingLocation);
+        final String locationJson = json.encode(
+          tempWorkClockIn.clockingLocation,
+        );
         final String fullResponse = json.encode(tempWorkClockIn.toJson());
 
         await _secureStorage.writeData('id', tempWorkClockIn.id);
         await _secureStorage.writeData('userId', tempWorkClockIn.userId);
-        await _secureStorage.writeData('clockingType', tempWorkClockIn.clockingType);
+        await _secureStorage.writeData(
+          'clockingType',
+          tempWorkClockIn.clockingType,
+        );
         await _secureStorage.writeData('day', tempWorkClockIn.day);
         await _secureStorage.writeData('comment', tempWorkClockIn.comment);
         await _secureStorage.writeData('startTime', startTimeJson);
         await _secureStorage.writeData('endTime', endTimeJson);
         await _secureStorage.writeData('clientId', tempWorkClockIn.clientId);
         await _secureStorage.writeData('projectId', tempWorkClockIn.projectId);
-        await _secureStorage.writeData('breakTime', tempWorkClockIn.breakTime.toString());
+        await _secureStorage.writeData(
+          'breakTime',
+          tempWorkClockIn.breakTime.toString(),
+        );
         await _secureStorage.writeData('clockingLocation', locationJson);
 
-        await _secureStorage.writeData('clockingTempWorkResponse', fullResponse);
+        await _secureStorage.writeData(
+          'clockingTempWorkResponse',
+          fullResponse,
+        );
 
         return tempWorkClockIn;
       } else {
@@ -229,8 +293,8 @@ class ApiService {
         return null;
       }
     } catch (e) {
-        print('Error fetching data $e');
-        return null;
+      print('Error fetching data $e');
+      return null;
     }
   }
 

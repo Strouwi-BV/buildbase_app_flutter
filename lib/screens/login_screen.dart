@@ -2,13 +2,36 @@ import 'package:buildbase_app_flutter/screens/forgot_password_screen.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
+import 'package:go_router/go_router.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _autoLogin();
+  }
+
+  Future<void> _autoLogin() async {
+    bool? hasToken = await secureStorage.containsKey(key: 'token');
+    print('hello:  $hasToken');
+    if (hasToken) {
+      print('mounted: $mounted');
+      if (mounted) {
+        print('mounted: $mounted');
+        context.go('/calendar');
+      }
+    }
+  }
 
   Future<void> _login(
     BuildContext context,

@@ -1,49 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class HeaderBar extends StatefulWidget implements PreferredSizeWidget {
+class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showProfile;
   const HeaderBar({Key? key, this.showProfile = true}) : super(key: key);
 
   @override
-  State<HeaderBar> createState() => _HeaderBarState();
-
-  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-}
-
-class _HeaderBarState extends State<HeaderBar> {
-  String? _profileImageUrl;
-  String _userName = 'User Name';
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileImage();
-    _loadUserName();
-  }
-
-  Future<void> _loadUserName() async {
-    final firstName = await ApiService().getUserFirstName();
-    final lastName = await ApiService().getUserLastName();
-    if (firstName == null || lastName == null) {
-      setState(() {
-        _userName = 'User Name';
-      });
-    } else {
-      setState(() {
-        _userName = '$firstName $lastName';
-      });
-    }
-  }
-
-  Future<void> _loadProfileImage() async {
-    final avatarUrl = await ApiService().usersAvatarComplete();
-    setState(() {
-      _profileImageUrl = avatarUrl;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,16 +20,15 @@ class _HeaderBarState extends State<HeaderBar> {
           return IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              GoRouter.of(
-                context,
-              ).go('/menu'); // Gebruik GoRouter voor navigatie
+              String currentRoute = GoRouterState.of(context).matchedLocation;
+              GoRouter.of(context).push('/menu', extra: currentRoute);
             },
           );
         },
       ),
       centerTitle: false,
       actions:
-          widget.showProfile
+          showProfile
               ? [
                 Row(
                   children: [
@@ -81,7 +45,6 @@ class _HeaderBarState extends State<HeaderBar> {
 
   Widget _buildProfileMenu(BuildContext context) {
     return PopupMenuButton<int>(
-      /*optie om naar MenuAnchor te veranderen*/
       icon: Row(
         children: [
           _buildProfileAvatar(),
@@ -95,25 +58,18 @@ class _HeaderBarState extends State<HeaderBar> {
             PopupMenuItem<int>(
               value: 0,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _buildProfileAvatar(),
-                      const SizedBox(width: 4),
-                      FutureBuilder<String?>(
-                        future: ApiService().getUserEmail(),
-                        builder: (context, snapshot) {
-                          return Text(
-                            snapshot.data ?? 'Laden...',
-                            textAlign: TextAlign.end,
-                            style: const TextStyle(color: Colors.grey),
-                          );
-                        },
-                      ),
-                    ],
+                  _buildProfileAvatar(),
+                  const SizedBox(height: 4),
+                  FutureBuilder<String?>(
+                    future: ApiService().getUserEmail(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? 'Laden...',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -144,19 +100,54 @@ class _HeaderBarState extends State<HeaderBar> {
   }
 
   Widget _buildProfileAvatar() {
-    if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        backgroundImage: Image.network(_profileImageUrl!).image,
-      );
-    } else {
-      return CircleAvatar(
-        backgroundColor: Colors.blue,
-        child: Text(
-          _userName.split(' ').map((e) => e[0]).take(2).join().toUpperCase(),
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
+    const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+    return FutureBuilder<String?>(
+      future: _secureStorage.read(key: 'avatarUrl').then((storedAvatar) async {
+        if (storedAvatar != null) return storedAvatar;
+        final avatarUrl = await ApiService().usersAvatarComplete();
+        if (avatarUrl != null && avatarUrl.isNotEmpty) {
+          await _secureStorage.write(key: 'avatarUrl', value: avatarUrl);
+          return avatarUrl;
+        }
+        return null;
+      }),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircleAvatar(
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          );
+        }
+
+        final avatarUrl = snapshot.data;
+        if (avatarUrl != null && avatarUrl.isNotEmpty) {
+          return CircleAvatar(backgroundImage: NetworkImage(avatarUrl));
+        } else {
+          return CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: FutureBuilder<String?>(
+              future: _getUserInitials(),
+              builder: (context, initialsSnapshot) {
+                return Text(
+                  initialsSnapshot.data ?? '?',
+                  style: const TextStyle(color: Colors.white),
+                );
+              },
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Future<String> _getUserInitials() async {
+    final firstName = await ApiService().getUserFirstName();
+    final lastName = await ApiService().getUserLastName();
+    if (firstName != null && lastName != null) {
+      return '${firstName[0]}${lastName[0]}'.toUpperCase();
     }
+    return '?';
   }
 
   Future<void> _onMenuSelected(BuildContext context, int item) async {
@@ -174,4 +165,3 @@ class _HeaderBarState extends State<HeaderBar> {
     }
   }
 }
-
