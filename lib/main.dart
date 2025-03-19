@@ -16,6 +16,8 @@ import '/screens/event_details_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '/screens/calendar_screen.dart'
     as calendar; // Importeer CalendarScreen.dart en noem het calendar
+import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
+import 'package:buildbase_app_flutter/screens/event_details_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -47,8 +49,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
-        final String? data = state.extra as String?;
-        return CalendarScreen(data: data ?? "No data here");
+        return CalendarScreen();
       },
     ),
     GoRoute(
@@ -89,6 +90,20 @@ final GoRouter _router = GoRouter(
       path: '/live-clocking-location',
       builder: (context, state) {
         return const LiveClockingLocationScreen();
+      },
+    ),
+    GoRoute(
+      path: 'event-details',
+      builder: (BuildContext context, GoRouterState state) {
+        final event = state.extra as Event;
+        return EventDetailsScreen(event: event);
+      },
+    ),
+    GoRoute(
+      path: 'edit-event',
+      builder: (BuildContext context, GoRouterState state) {
+        final event = state.extra as Event;
+        return EditEventScreen(event: event);
       },
     ),
   ],

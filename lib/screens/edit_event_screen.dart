@@ -22,7 +22,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.event.title);
-    _descriptionController = TextEditingController(text: widget.event.description);
+    _descriptionController = TextEditingController(
+      text: widget.event.description,
+    );
     _startTime = widget.event.startTime;
     _endTime = widget.event.endTime;
     _locationController = TextEditingController(text: widget.event.location);
@@ -47,8 +49,20 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     if (picked != null) {
       setState(() {
-        _startTime = DateTime(picked.year, picked.month, picked.day, _startTime.hour, _startTime.minute);
-        _endTime = DateTime(picked.year, picked.month, picked.day, _endTime.hour, _endTime.minute);
+        _startTime = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _startTime.hour,
+          _startTime.minute,
+        );
+        _endTime = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _endTime.hour,
+          _endTime.minute,
+        );
       });
     }
   }
@@ -61,9 +75,21 @@ class _EditEventScreenState extends State<EditEventScreen> {
     if (picked != null) {
       setState(() {
         if (isStartTime) {
-          _startTime = DateTime(_startTime.year, _startTime.month, _startTime.day, picked.hour, picked.minute);
+          _startTime = DateTime(
+            _startTime.year,
+            _startTime.month,
+            _startTime.day,
+            picked.hour,
+            picked.minute,
+          );
         } else {
-          _endTime = DateTime(_endTime.year, _endTime.month, _endTime.day, picked.hour, picked.minute);
+          _endTime = DateTime(
+            _endTime.year,
+            _endTime.month,
+            _endTime.day,
+            picked.hour,
+            picked.minute,
+          );
         }
       });
     }
@@ -97,7 +123,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -129,17 +157,23 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(Icons.calendar_today),
-                  title: Text('Date: ${_startTime.day}/${_startTime.month}/${_startTime.year}'),
+                  title: Text(
+                    'Date: ${_startTime.day}/${_startTime.month}/${_startTime.year}',
+                  ),
                   onTap: () => _selectDate(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.access_time),
-                  title: Text('Start Time: ${_startTime.hour}:${_startTime.minute.toString().padLeft(2, '0')}'),
+                  title: Text(
+                    'Start Time: ${_startTime.hour}:${_startTime.minute.toString().padLeft(2, '0')}',
+                  ),
                   onTap: () => _selectTime(context, true),
                 ),
                 ListTile(
                   leading: const Icon(Icons.access_time),
-                  title: Text('End Time: ${_endTime.hour}:${_endTime.minute.toString().padLeft(2, '0')}'),
+                  title: Text(
+                    'End Time: ${_endTime.hour}:${_endTime.minute.toString().padLeft(2, '0')}',
+                  ),
                   onTap: () => _selectTime(context, false),
                 ),
                 const SizedBox(height: 20),
@@ -148,7 +182,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff13263B),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: () {
                       Navigator.pop(context);

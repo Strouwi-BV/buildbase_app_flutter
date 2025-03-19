@@ -24,8 +24,8 @@ class Event {
     this.color = Colors.blue,
   });
 
-/*************  ✨ Codeium Command ⭐  *************/
-/******  0ec63dc3-77de-4a76-9f28-7c9d0e35267e  *******/
+  /*************  ✨ Codeium Command ⭐  *************/
+  /******  0ec63dc3-77de-4a76-9f28-7c9d0e35267e  *******/
   bool overlapsWith(Event other) {
     return startTime.isBefore(other.endTime) &&
         endTime.isAfter(other.startTime);
@@ -330,10 +330,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _editEvent(BuildContext context, Event event) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditEventScreen(event: event)),
-    );
+    final result = await context.push('/add-event');
 
     if (result is Event) {
       setState(() {
@@ -352,10 +349,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showEventDetails(BuildContext context, Event event) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EventDetailsScreen(event: event)),
-    );
+    final result = await context.push('/event-details/${event.title}');
+
     if (result is Event) {
       _deleteEvent(result);
     } else if (result is String && result == 'edit') {
@@ -385,7 +380,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const HeaderBar(title: "Calendar"),
+      appBar: const HeaderBar(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xff13263B),
         onPressed: () => _addEvent(context),
