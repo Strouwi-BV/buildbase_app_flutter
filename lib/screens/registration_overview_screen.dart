@@ -1,3 +1,8 @@
+
+
+import 'package:buildbase_app_flutter/service/api_service.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
+import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -29,12 +34,17 @@ class RegistrationOverviewScreen extends StatefulWidget {
 }
 
 class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen> {
+  final SecureStorageService secure = SecureStorageService();
+  final LocationService location = LocationService();
+  final apiService = ApiService();
+  
   late String _currentTime;
   late Timer _timer;
 
   @override
   void initState() {
     super.initState();
+    getClientDetails();
     // Verplaats de Timer-logica naar didChangeDependencies
   }
 
@@ -49,6 +59,12 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
         });
       }
     });
+  }
+
+  String? getClientDetails() {
+    String selectedClientName = secure.readData('selectedClientName').toString();
+    String selectedProjectName = secure.readData('selectedProjectName').toString();
+    print(selectedProjectName + " " + selectedClientName);
   }
 
   @override
@@ -66,6 +82,8 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   @override
   Widget build(BuildContext context) {
     final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+    String selectedClientName = secure.readData('selectedClientName').toString();
+    String selectedProjectName = secure.readData('selectedProjectName').toString();
     return Scaffold(
       appBar: const HeaderBar(),
       body: Padding(
@@ -131,10 +149,10 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              _buildDropdownField('Klantnaam *', widget.clientName,
+              _buildDropdownField('Klantnaam *', selectedClientName,
                   showIcon: false),
               const SizedBox(height: 16),
-              _buildDropdownField('Projectnaam *', widget.projectName,
+              _buildDropdownField('Projectnaam *', selectedProjectName,
                   showIcon: false),
               const SizedBox(height: 16),
               _buildTextField('Opmerking'),

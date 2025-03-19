@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/clocking_temp_work_response.dart';
 import 'package:buildbase_app_flutter/model/login_response.dart';
-import 'package:buildbase_app_flutter/model/client_response.dart';
 import 'package:buildbase_app_flutter/model/project_model.dart';
 import 'package:buildbase_app_flutter/service/no_redirects_client.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
@@ -241,6 +239,7 @@ class ApiService {
   }
 
   //GET /clockings/temp-work
+  //Used to receive active clocking if available
   Future<ClockingTempWorkResponse?> getTempWork() async {
     String? token = await _secureStorage.readData('token');
 
@@ -297,6 +296,8 @@ class ApiService {
       return null;
     }
   }
+
+  //Post
 
   //Get /clients/active/user
   Future<List<ClientResponse>> getClients() async {

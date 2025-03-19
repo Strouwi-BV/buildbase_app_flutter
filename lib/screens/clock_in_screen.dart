@@ -73,6 +73,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
       setState(() {
         selectedClient = client;
         secure.writeData('selectedClient', client.id);
+        secure.writeData('selectedClientName', client.clientName);
+        print(secure.readData('selectedClientName').toString());
         _loadProjects(client);
       });
     }
@@ -82,33 +84,46 @@ class _ClockInScreenState extends State<ClockInScreen> {
     if (project != null) {
       setState(() {
         selectedProject = project;
+        secure.writeData('selectedProjectName', project.projectName);
+        print(secure.readData('selectedProjectName').toString());
       });
     }
   }
 
   void _startClockIn() {
-    setState(() {
-      _startTime = TimeOfDay.now().format(context);
-      _endTime = TimeOfDay.now().format(context);
-    });
+    final predictedEndTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(hours: 8)));
+    String selectedClientName;
+    String selectedProjectName;
+    final String posClient = secure.readData('selectedClientName').toString();
+    final String posProject = secure.readData('selectedProjectName').toString();
+
+    if (posClient.isNotEmpty && posProject.isNotEmpty){
+      selectedProjectName = posProject.toString();
+      selectedClientName = posClient.toString();
+      setState(() {
+        _startTime = TimeOfDay.now().format(context);
+        _endTime = predictedEndTime.format(context);
+        
+        // _endTime = predictedEndTime.format(context);
+      });
+
+      context.go(
+        '/registration-overview',
+        extra: {
+          'startTime': _startTime,
+          // 'clientName': _selectedClient,
+          // 'projectName': _selectedProject,
+          'startDate': DateTime.now().toIso8601String(),
+          'endDate': DateTime.now().toIso8601String(),
+          'endTime': _endTime,
+          'clientName': selectedClientName.toString(),
+          'projectName': selectedProjectName.toString(),
+          'date': '27/02/2025' // You can make this dynamic
+        },
+      );
+    }
 
     // Navigate to RegistrationOverviewScreen and pass the selected values
-    context.go(
-      '/registration-overview',
-      extra: {
-        'startTime': _startTime,
-        // 'clientName': _selectedClient,
-        // 'projectName': _selectedProject,
-        'startDate': DateTime.now().toIso8601String(),
-        'endDate': DateTime.now().toIso8601String(),
-        'endTime': _endTime,
-        'date': '27/02/2025' // You can make this dynamic
-      },
-    );
-
-    // Future<void> _loadClients() async {
-    //   List<ClientResponse> fetchedClients = await apiService.getClients();
-    // }
   }
 
   @override

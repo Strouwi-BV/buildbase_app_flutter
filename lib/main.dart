@@ -2,11 +2,14 @@ import 'package:buildbase_app_flutter/screens/forgot_password_screen.dart';
 import 'package:buildbase_app_flutter/screens/live_clocking_location.dart';
 import 'package:buildbase_app_flutter/screens/menu_screen.dart';
 import 'package:buildbase_app_flutter/screens/login_screen.dart';
+import 'package:buildbase_app_flutter/screens/registration_overview_screen.dart';
 import 'package:buildbase_app_flutter/screens/settings_screen.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
+import 'package:buildbase_app_flutter/service/timer_service.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
@@ -23,7 +26,10 @@ void main() async {
     await Geolocator.requestPermission();
   }
 
-  runApp(MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => TimerProvider(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -83,6 +89,18 @@ final GoRouter _router = GoRouter(
         return const LiveClockingLocationScreen();
       },
     ),
+    GoRoute(
+        path: '/registration-overview',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          return RegistrationOverviewScreen(
+              startDate: data['startDate'],
+              startTime: data['startTime'],
+              endDate: data['endDate'],
+              clientName: data['clientName'],
+              projectName: data['projectName'],
+              date: data['date']);
+      }),
   ],
 );
 
