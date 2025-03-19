@@ -19,7 +19,7 @@ class LoginResponse {
     required this.organizationId,
   });
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json){
+  factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       roles: List<String>.from(json['roles'] ?? []),
       token: json['token'] ?? '',
@@ -28,11 +28,11 @@ class LoginResponse {
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       email: json['email'] ?? '',
-      organizationId: json['origanizationId'] ?? '',
+      organizationId: json['organizationId'] ?? '',
     );
   }
 
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     return {
       'roles': roles,
       'token': token,
