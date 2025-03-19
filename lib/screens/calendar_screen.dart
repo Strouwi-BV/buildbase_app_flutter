@@ -330,8 +330,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _editEvent(BuildContext context, Event event) async {
-    final result = await context.push('/add-event');
-
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EventDetailsScreen(event: event)),
+    );
     if (result is Event) {
       setState(() {
         final index = _events.indexOf(event);
@@ -349,7 +351,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showEventDetails(BuildContext context, Event event) async {
-    final result = await context.push('/event-details/${event.title}');
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditEventScreen(event: event)),
+    );
 
     if (result is Event) {
       _deleteEvent(result);
