@@ -26,8 +26,6 @@ void main() async {
   runApp(MyApp());
 }
 
-//bib@bib.be
-//Test123
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -40,10 +38,7 @@ class MyApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   routes: [
-    GoRoute(
-      path: '/', 
-      builder: (context, state) => ClockInScreen()
-    ),
+    GoRoute(path: '/', builder: (context, state) => LoginScreen()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
@@ -51,10 +46,7 @@ final GoRouter _router = GoRouter(
         return CalendarScreen(data: data ?? "No data here");
       },
     ),
-    GoRoute(
-      path: '/clock-in', 
-      builder: (context, state) => ClockInScreen()
-    ),
+    GoRoute(path: '/clock-in', builder: (context, state) => ClockInScreen()),
     GoRoute(
       path: '/profile/:userId',
       builder: (context, state) {
@@ -66,10 +58,7 @@ final GoRouter _router = GoRouter(
       path: '/change-image',
       builder: (context, state) => ChangeImageScreen(),
     ),
-    GoRoute(
-      path: '/menu', 
-      builder: (context, state) => MenuScreen()
-    ),
+    GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
     GoRoute(
       path: '/log-in',
       builder: (context, state) {
@@ -94,73 +83,89 @@ final GoRouter _router = GoRouter(
         return const LiveClockingLocationScreen();
       },
     ),
-    
-
   ],
 );
 
-Widget buildMenuItems(BuildContext context) {
+Widget buildMenuItems(BuildContext context, String currentRoute) {
   return Container(
-    color: const Color(
-      0xff13263B,
-    ), // Voeg hier de gewenste achtergrondkleur toe
+    color: const Color(0xff13263B),
+    padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
     child: Column(
       children: [
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.calendar_today_sharp),
-          title: const Text('Calendar'),
-          onTap: () {
-            context.go('/calendar', extra: "Meeting at 11:30 AM");
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.calendar_today_sharp,
+          title: 'Calendar',
+          route: '/calendar',
+          isActive: currentRoute == '/calendar',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.access_time_outlined),
-          title: const Text('Clock In'),
-          onTap: () {
-            context.go('/clock-in');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.access_time_outlined,
+          title: 'Clock In',
+          route: '/clock-in',
+          isActive: currentRoute == '/clock-in',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.account_circle),
-          title: const Text('Profile'),
-          onTap: () {
-            context.go('/profile/1');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.account_circle,
+          title: 'Profile',
+          route: '/profile/1',
+          isActive: currentRoute.startsWith('/profile'),
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Login'),
-          onTap: () {
-            context.go('/log-in');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.login,
+          title: 'Login',
+          route: '/log-in',
+          isActive: currentRoute == '/log-in',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Settings'),
-          onTap: () {
-            context.go('/settings');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.settings,
+          title: 'Settings',
+          route: '/settings',
+          isActive: currentRoute == '/settings',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Live Clocking Location'),
-          onTap: () {
-            context.go('/live-clocking-location');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.location_on,
+          title: 'Live Clocking Location',
+          route: '/live-clocking-location',
+          isActive: currentRoute == '/live-clocking-location',
         ),
       ],
     ),
+  );
+}
+
+Widget _buildMenuItem(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required String route,
+  required bool isActive,
+}) {
+  return ListTile(
+    iconColor: isActive ? const Color(0xFFc1ffbf) : Colors.white,
+    textColor: isActive ? const Color(0xFFc1ffbf) : Colors.white,
+    leading: Icon(icon),
+    title:
+        isActive
+            ? Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: const Color(0xFFc1ffbf), width: 2),
+                ),
+              ),
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            )
+            : Text(title),
+    onTap: () {
+      context.go(route);
+    },
   );
 }

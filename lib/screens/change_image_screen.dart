@@ -1,5 +1,6 @@
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -43,6 +44,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
 
   Future<void> _postImage() async {
     await ApiService().usersAvatarPost(_newImage);
+    const FlutterSecureStorage().write(key: 'avatarUrl', value: _avatarUrl);
     setState(() {
       _newImage = null;
     });
