@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class ChangeImageScreen extends StatefulWidget {
+  // final VoidCallback onImageChanged;
+
   const ChangeImageScreen({Key? key}) : super(key: key);
 
   @override
@@ -13,6 +15,7 @@ class ChangeImageScreen extends StatefulWidget {
 }
 
 class _ChangeImageScreenState extends State<ChangeImageScreen> {
+  // File? image;
   String? _avatarUrl;
   File? _newImage;
   final ImagePicker _picker = ImagePicker();
