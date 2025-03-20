@@ -1,15 +1,15 @@
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
-class TimeDetail {
+class DetailedTimeStamp {
   final String localTime;
   final String utcTime;
   final String timezone;
 
-  TimeDetail({required this.localTime, required this.utcTime, required this.timezone});
+  DetailedTimeStamp({required this.localTime, required this.utcTime, required this.timezone});
 
-  factory TimeDetail.fromJson(Map<String, dynamic> json) {
-    return TimeDetail(
+  factory DetailedTimeStamp.fromJson(Map<String, dynamic> json) {
+    return DetailedTimeStamp(
       localTime: json['localTime'],
       utcTime: json['utcTime'],
       timezone: json['timeZone'],
