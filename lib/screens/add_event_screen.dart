@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/calendar_screen.dart';
+import 'package:buildbase_app_flutter/model/event_model.dart';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({Key? key}) : super(key: key);
@@ -22,17 +23,19 @@ class _AddEventScreenState extends State<AddEventScreen> {
   void _addEvent(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       DateTime startDateTime = DateTime(
-          _selectedStartDate.year,
-          _selectedStartDate.month,
-          _selectedStartDate.day,
-          _selectedStartTime.hour,
-          _selectedStartTime.minute);
+        _selectedStartDate.year,
+        _selectedStartDate.month,
+        _selectedStartDate.day,
+        _selectedStartTime.hour,
+        _selectedStartTime.minute,
+      );
       DateTime endDateTime = DateTime(
-          _selectedEndDate.year,
-          _selectedEndDate.month,
-          _selectedEndDate.day,
-          _selectedEndTime.hour,
-          _selectedEndTime.minute);
+        _selectedEndDate.year,
+        _selectedEndDate.month,
+        _selectedEndDate.day,
+        _selectedEndTime.hour,
+        _selectedEndTime.minute,
+      );
       final newEvent = Event(
         title: _titleController.text,
         description: _descriptionController.text,
@@ -91,7 +94,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -102,8 +107,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   TextFormField(
                     controller: _titleController,
                     decoration: const InputDecoration(labelText: 'Title'),
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Please enter a title' : null,
+                    validator:
+                        (value) =>
+                            (value == null || value.isEmpty)
+                                ? 'Please enter a title'
+                                : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -112,28 +120,38 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   ),
                   const SizedBox(height: 16),
                   ListTile(
-                    title: Text('Start Date: ${_selectedStartDate.toLocal().toString().split(' ')[0]}'),
+                    title: Text(
+                      'Start Date: ${_selectedStartDate.toLocal().toString().split(' ')[0]}',
+                    ),
                     trailing: const Icon(Icons.calendar_today),
                     onTap: () => _selectDate(context, true),
                   ),
                   ListTile(
-                    title: Text('Start Time: ${_selectedStartTime.format(context)}'),
+                    title: Text(
+                      'Start Time: ${_selectedStartTime.format(context)}',
+                    ),
                     trailing: const Icon(Icons.access_time),
                     onTap: () => _selectTime(context, true),
                   ),
                   ListTile(
-                    title: Text('End Date: ${_selectedEndDate.toLocal().toString().split(' ')[0]}'),
+                    title: Text(
+                      'End Date: ${_selectedEndDate.toLocal().toString().split(' ')[0]}',
+                    ),
                     trailing: const Icon(Icons.calendar_today),
                     onTap: () => _selectDate(context, false),
                   ),
                   ListTile(
-                    title: Text('End Time: ${_selectedEndTime.format(context)}'),
+                    title: Text(
+                      'End Time: ${_selectedEndTime.format(context)}',
+                    ),
                     trailing: const Icon(Icons.access_time),
                     onTap: () => _selectTime(context, false),
                   ),
                   DropdownButtonFormField<String>(
                     value: _selectedLocation,
-                    onChanged: (newValue) => setState(() => _selectedLocation = newValue),
+                    onChanged:
+                        (newValue) =>
+                            setState(() => _selectedLocation = newValue),
                     items: const [
                       DropdownMenuItem(value: 'Office', child: Text('Office')),
                       DropdownMenuItem(value: 'Home', child: Text('Home')),
@@ -148,25 +166,35 @@ class _AddEventScreenState extends State<AddEventScreen> {
                     onTap: () {
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Pick a color'),
-                          content: Wrap(
-                            children: [
-                              Colors.blue, Colors.red, Colors.green, Colors.yellow
-                            ].map((color) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() => _selectedColor = color);
-                                  Navigator.pop(context);
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4.0),
-                                  child: CircleAvatar(backgroundColor: color, radius: 15),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Pick a color'),
+                              content: Wrap(
+                                children:
+                                    [
+                                      Colors.blue,
+                                      Colors.red,
+                                      Colors.green,
+                                      Colors.yellow,
+                                    ].map((color) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(
+                                            () => _selectedColor = color,
+                                          );
+                                          Navigator.pop(context);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4.0),
+                                          child: CircleAvatar(
+                                            backgroundColor: color,
+                                            radius: 15,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
                       );
                     },
                   ),

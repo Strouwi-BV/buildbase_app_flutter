@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:buildbase_app_flutter/screens/add_event_screen.dart';
@@ -5,32 +6,7 @@ import 'package:buildbase_app_flutter/screens/event_details_screen.dart';
 import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
-
-// Event klasse
-class Event {
-  final String title;
-  final String? description;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String? location;
-  Color color; // Maak de kleur aanpasbaar
-
-  Event({
-    required this.title,
-    this.description,
-    required this.startTime,
-    required this.endTime,
-    this.location,
-    this.color = Colors.blue,
-  });
-
-  /*************  ✨ Codeium Command ⭐  *************/
-  /******  0ec63dc3-77de-4a76-9f28-7c9d0e35267e  *******/
-  bool overlapsWith(Event other) {
-    return startTime.isBefore(other.endTime) &&
-        endTime.isAfter(other.startTime);
-  }
-}
+import 'package:buildbase_app_flutter/model/event_model.dart';
 
 // EventIndicator klasse
 class EventIndicator extends StatelessWidget {
@@ -201,132 +177,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _selectedDay = DateTime.now();
   List<Event> _events = [];
   CalendarView _calendarView = CalendarView.month;
+  bool _isLoading = true;
 
-  List<Event> _getEventsForDay(DateTime day) {
-    final List<Event> dayEvents = [];
-    for (var event in _events) {
-      final eventDate = DateTime(
-        event.startTime.year,
-        event.startTime.month,
-        event.startTime.day,
-      );
-      if (isSameDay(eventDate, day)) {
-        dayEvents.add(event);
-      }
-    }
-
-    // Sorteer de evenementen op starttijd
-    dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    // Splits overlappende evenementen op in groepen
-    List<List<Event>> eventGroups = [];
-    List<Event> currentGroup = [];
-
-    for (var i = 0; i < dayEvents.length; i++) {
-      bool added = false;
-      for (var j = 0; j < eventGroups.length; j++) {
-        bool overlaps = false;
-        for (var k = 0; k < eventGroups[j].length; k++) {
-          if (dayEvents[i].overlapsWith(eventGroups[j][k])) {
-            overlaps = true;
-            break;
-          }
-        }
-        if (!overlaps) {
-          eventGroups[j].add(dayEvents[i]);
-          added = true;
-          break;
-        }
-      }
-      if (!added) {
-        eventGroups.add([dayEvents[i]]);
-      }
-    }
-
-    // Organiseer evenementen per tijdslot
-    List<Event> organizedEvents = [];
-    for (var group in eventGroups) {
-      for (var event in group) {
-        organizedEvents.add(event);
-      }
-    }
-
-    return organizedEvents;
+  @override
+  void initState() {
+    super.initState();
+    _fetchEvents();
   }
 
-  List<List<Event>> _getEventsForWeek(DateTime firstDayOfWeek) {
-    List<List<Event>> weekEvents = [];
-    for (int i = 0; i < 7; i++) {
-      final currentDay = firstDayOfWeek.add(Duration(days: i));
-      List<Event> dayEvents = [];
-      for (var event in _events) {
-        final eventDate = DateTime(
-          event.startTime.year,
-          event.startTime.month,
-          event.startTime.day,
-        );
-        if (isSameDay(eventDate, currentDay)) {
-          dayEvents.add(event);
-        }
-      }
+  Future<void> _fetchEvents() async {
+    DateTime start, end;
 
-      // Sorteer de evenementen op starttijd
-      dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
-
-      // Splits overlappende evenementen op in groepen
-      List<List<Event>> eventGroups = [];
-      List<Event> currentGroup = [];
-
-      for (var i = 0; i < dayEvents.length; i++) {
-        bool added = false;
-        for (var j = 0; j < eventGroups.length; j++) {
-          bool overlaps = false;
-          for (var k = 0; k < eventGroups[j].length; k++) {
-            if (dayEvents[i].overlapsWith(eventGroups[j][k])) {
-              overlaps = true;
-              break;
-            }
-          }
-          if (!overlaps) {
-            eventGroups[j].add(dayEvents[i]);
-            added = true;
-            break;
-          }
-        }
-        if (!added) {
-          eventGroups.add([dayEvents[i]]);
-        }
-      }
-
-      // Organiseer evenementen per tijdslot
-      List<Event> organizedEvents = [];
-      for (var group in eventGroups) {
-        for (var event in group) {
-          organizedEvents.add(event);
-        }
-      }
-
-      weekEvents.add(organizedEvents);
+    if (_calendarView == CalendarView.month) {
+      start = DateTime(_focusedDay.year, _focusedDay.month, 1);
+      end = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
+    } else if (_calendarView == CalendarView.week) {
+      start = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
+      end = start.add(Duration(days: 6));
+    } else {
+      start = _selectedDay;
+      end = _selectedDay;
     }
-    return weekEvents;
-  }
 
-  List<Event> get _upcomingEvents {
-    final now = DateTime.now();
-    return List.from(_events.where((event) => event.startTime.isAfter(now)));
-  }
+    setState(() {
+      _isLoading = true;
+    });
 
-  void _addEvent(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddEventScreen()),
-    );
-
-    if (result is Event) {
+    try {
+      List<Event> events = await ApiService().getClockingMonthView(start, end);
       setState(() {
-        _events.add(result);
+        _events = events;
+        _isLoading = false;
       });
+    } catch (e) {
+      print("Error loading events: $e");
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _deleteEvent(Event event) {
+    setState(() {
+      _events.remove(event);
+    });
   }
 
   void _editEvent(BuildContext context, Event event) async {
@@ -342,12 +234,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         }
       });
     }
-  }
-
-  void _deleteEvent(Event event) {
-    setState(() {
-      _events.remove(event);
-    });
   }
 
   void _showEventDetails(BuildContext context, Event event) async {
@@ -371,6 +257,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _calendarView = CalendarView.day;
       }
     });
+    _fetchEvents(); // Haal nieuwe evenementen op voor de dagweergave
+  }
+
+  void _addEvent(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddEventScreen()),
+    );
+
+    if (result is Event) {
+      setState(() {
+        _events.add(result);
+      });
+    }
+  }
+
+  /*List<Event> _getEventsForDay(DateTime day) {
+    final List<Event> dayEvents = [];
+    for (var event in _events) {
+      final eventDate = DateTime(
+        event.startTime.year,
+        event.startTime.month,
+        event.startTime.day,
+      );
+      if (isSameDay(eventDate, day)) {
+        dayEvents.add(event);
+      }
+    }
+  }*/
+  List<Event> _getEventsForDay(DateTime day) {
+    return _events.where((event) {
+      final eventDate = DateTime(
+        event.startTime.year,
+        event.startTime.month,
+        event.startTime.day,
+      );
+      return isSameDay(eventDate, day);
+    }).toList();
   }
 
   void _onViewChanged(CalendarView view) {
@@ -380,6 +304,39 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _selectedDay = DateTime.now();
       }
     });
+    _fetchEvents(); // Haal evenementen op voor de nieuwe weergave
+  }
+
+  void _onPageChanged(DateTime focusedDay) {
+    setState(() {
+      _focusedDay = focusedDay;
+    });
+    _fetchEvents(); // Haal evenementen opnieuw op bij pagina wisseling
+  }
+
+  List<Event> get _upcomingEvents {
+    final now = DateTime.now();
+    return List.from(_events.where((event) => event.startTime.isAfter(now)));
+  }
+
+  List<List<Event>> _getEventsForWeek(DateTime firstDayOfWeek) {
+    List<List<Event>> weekEvents = List.generate(7, (_) => []);
+
+    for (var event in _events) {
+      final eventDate = DateTime(
+        event.startTime.year,
+        event.startTime.month,
+        event.startTime.day,
+      );
+
+      for (int i = 0; i < 7; i++) {
+        if (isSameDay(eventDate, firstDayOfWeek.add(Duration(days: i)))) {
+          weekEvents[i].add(event);
+        }
+      }
+    }
+
+    return weekEvents;
   }
 
   @override
@@ -420,13 +377,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           if (_calendarView == CalendarView.month)
             TableCalendar(
               calendarStyle: const CalendarStyle(
-                // Hier verwijderen we de filters
                 cellMargin: EdgeInsets.zero,
                 cellAlignment: Alignment.center,
               ),
-              headerStyle: const HeaderStyle(
-                formatButtonVisible: false, // Verberg de knop voor de weergave
-              ),
+              headerStyle: const HeaderStyle(formatButtonVisible: false),
               calendarFormat: _calendarFormat,
               focusedDay: _focusedDay,
               firstDay: DateTime.utc(2010, 10, 16),
@@ -440,9 +394,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   _calendarFormat = format;
                 });
               },
-              onPageChanged: (focusedDay) {
-                _focusedDay = focusedDay;
-              },
+              onPageChanged: _onPageChanged,
               eventLoader: _getEventsForDay,
               calendarBuilders: CalendarBuilders(
                 markerBuilder: (context, day, events) {
@@ -648,6 +600,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 },
               ),
             ),
+          Container(
+            margin: const EdgeInsets.all(16.0),
+            child: IconButton(
+              icon: const Icon(Icons.tab),
+              color: Colors.black,
+              onPressed:
+                  () => ApiService().getClockingMonthView(
+                    DateTime(_focusedDay.year, _focusedDay.month, 1),
+                    DateTime(_focusedDay.year, _focusedDay.month + 1, 0),
+                  ),
+            ),
+          ),
         ],
       ),
     );

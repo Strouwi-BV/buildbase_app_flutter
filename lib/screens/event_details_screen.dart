@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/calendar_screen.dart';
 import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
+import 'package:buildbase_app_flutter/model/event_model.dart';
 
 class EventDetailsScreen extends StatelessWidget {
   final Event event;

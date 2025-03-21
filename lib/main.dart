@@ -92,20 +92,6 @@ final GoRouter _router = GoRouter(
         return const LiveClockingLocationScreen();
       },
     ),
-    GoRoute(
-      path: 'event-details',
-      builder: (BuildContext context, GoRouterState state) {
-        final event = state.extra as Event;
-        return EventDetailsScreen(event: event);
-      },
-    ),
-    GoRoute(
-      path: 'edit-event',
-      builder: (BuildContext context, GoRouterState state) {
-        final event = state.extra as Event;
-        return EditEventScreen(event: event);
-      },
-    ),
   ],
 );
 
