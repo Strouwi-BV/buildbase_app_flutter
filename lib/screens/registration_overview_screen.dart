@@ -40,6 +40,8 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   
   late String _currentTime;
   late Timer _timer;
+  String selectedClientName = "";
+  String selectedProjectName = "";
 
   @override
   void initState() {
@@ -61,10 +63,14 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
     });
   }
 
-  String? getClientDetails() {
-    String selectedClientName = secure.readData('selectedClientName').toString();
-    String selectedProjectName = secure.readData('selectedProjectName').toString();
-    print(selectedProjectName + " " + selectedClientName);
+  Future<void> getClientDetails() async {
+    String? selectedClient = await secure.readData('selectedClientName');
+    String? selectedProject = await secure.readData('selectedProjectName');
+    
+    setState(() {
+      selectedClientName = selectedClient!;
+      selectedProjectName = selectedProject!;
+    });
   }
 
   @override
@@ -82,8 +88,6 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   @override
   Widget build(BuildContext context) {
     final timerProvider = Provider.of<TimerProvider>(context, listen: false);
-    String selectedClientName = secure.readData('selectedClientName').toString();
-    String selectedProjectName = secure.readData('selectedProjectName').toString();
     return Scaffold(
       appBar: const HeaderBar(),
       body: Padding(

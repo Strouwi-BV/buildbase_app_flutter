@@ -90,16 +90,13 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
   }
 
-  void _startClockIn() {
+  Future<void> _startClockIn() async {
     final predictedEndTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(hours: 8)));
-    String selectedClientName;
-    String selectedProjectName;
-    final String posClient = secure.readData('selectedClientName').toString();
-    final String posProject = secure.readData('selectedProjectName').toString();
+    final String? posClient = await secure.readData('selectedClientName');
+    final String? posProject = await secure.readData('selectedProjectName');
 
-    if (posClient.isNotEmpty && posProject.isNotEmpty){
-      selectedProjectName = posProject.toString();
-      selectedClientName = posClient.toString();
+    if (posClient != null && posProject != null && posClient.isNotEmpty && posProject.isNotEmpty){
+
       setState(() {
         _startTime = TimeOfDay.now().format(context);
         _endTime = predictedEndTime.format(context);
@@ -116,8 +113,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
           'startDate': DateTime.now().toIso8601String(),
           'endDate': DateTime.now().toIso8601String(),
           'endTime': _endTime,
-          'clientName': selectedClientName.toString(),
-          'projectName': selectedProjectName.toString(),
+          'clientName': posClient,
+          'projectName': posProject,
           'date': '27/02/2025' // You can make this dynamic
         },
       );
