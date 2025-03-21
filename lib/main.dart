@@ -58,7 +58,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/profile/:userId',
       builder: (context, state) {
-        final userId = int.tryParse(state.pathParameters['userId'] ?? '') ?? 0;
+        final String userId = state.pathParameters['userId'] ?? '';
         return ProfileScreen(userId: userId);
       },
     ),

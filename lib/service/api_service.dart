@@ -231,24 +231,19 @@ class ApiService {
     }
     return null;
   }
+
   Future<void> logout() async {
     await _secureStorage.deleteAllData();
   }
 
   //GET /clockings/temp-work
   Future<ClockingTempWorkResponse?> getTempWork() async {
-
     String? token = await _secureStorage.readData('token');
 
-
     final url = Uri.parse('$_baseUrl/clockings/temp-work');
-    final headers = {
-      'Authorization' : 'Bearer $token',
-    };
-
+    final headers = {'Authorization': 'Bearer $token'};
 
     try {
-
       final response = await http.get(url, headers: headers);
       print('In tempwork try');
       print('Statuscode: ${response.statusCode}');
@@ -256,24 +251,37 @@ class ApiService {
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         final tempWorkClockIn = ClockingTempWorkResponse.fromJson(jsonResponse);
-        final String startTimeJson = json.encode(tempWorkClockIn.startTime.toJson());
+        final String startTimeJson = json.encode(
+          tempWorkClockIn.startTime.toJson(),
+        );
         final String endTimeJson = json.encode(tempWorkClockIn.endTime);
-        final String locationJson = json.encode(tempWorkClockIn.clockingLocation);
+        final String locationJson = json.encode(
+          tempWorkClockIn.clockingLocation,
+        );
         final String fullResponse = json.encode(tempWorkClockIn.toJson());
 
         await _secureStorage.writeData('id', tempWorkClockIn.id);
         await _secureStorage.writeData('userId', tempWorkClockIn.userId);
-        await _secureStorage.writeData('clockingType', tempWorkClockIn.clockingType);
+        await _secureStorage.writeData(
+          'clockingType',
+          tempWorkClockIn.clockingType,
+        );
         await _secureStorage.writeData('day', tempWorkClockIn.day);
         await _secureStorage.writeData('comment', tempWorkClockIn.comment);
         await _secureStorage.writeData('startTime', startTimeJson);
         await _secureStorage.writeData('endTime', endTimeJson);
         await _secureStorage.writeData('clientId', tempWorkClockIn.clientId);
         await _secureStorage.writeData('projectId', tempWorkClockIn.projectId);
-        await _secureStorage.writeData('breakTime', tempWorkClockIn.breakTime.toString());
+        await _secureStorage.writeData(
+          'breakTime',
+          tempWorkClockIn.breakTime.toString(),
+        );
         await _secureStorage.writeData('clockingLocation', locationJson);
 
-        await _secureStorage.writeData('clockingTempWorkResponse', fullResponse);
+        await _secureStorage.writeData(
+          'clockingTempWorkResponse',
+          fullResponse,
+        );
 
         return tempWorkClockIn;
       } else {
@@ -281,8 +289,116 @@ class ApiService {
         return null;
       }
     } catch (e) {
-        print('Error fetching data $e');
+      print('Error fetching data $e');
+      return null;
+    }
+  }
+
+  // Functie om de profielgegevens op te halen
+  Future<Map<String, dynamic>?> fetchUserProfile(String userId) async {
+    try {
+      // Maak een HTTP-aanroep om de gebruikersgegevens op te halen
+      final response = await http.get( Uri.parse('$_baseUrl/users/$userId/profile'), // Pas de URL aan naar jouw endpoint
+        headers: {
+          'Authorization': 'Bearer jouw-token-hier', // Voeg eventueel een token toe als dat nodig is
+        },
+      );
+
+      // Controleer de statuscode van de response
+      if (response.statusCode == 200) {
+        // Parse de JSON-data als de aanvraag succesvol is
+        return json.decode(response.body); // Zorg ervoor dat je 'dart:convert' hebt geïmporteerd
+      } else {
+        // Fout bij ophalen van data
+        print('Fout bij ophalen van profielgegevens: ${response.statusCode}');
         return null;
+      }
+    } catch (e) {
+      print('Fout bij de API-aanroep: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchPersonalInformation(String userId) async {
+    final String? token = await _secureStorage.readData('token');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+
+    if (token == null || organizationId == null) {
+      print("Fout: token of organisatie-ID ontbreekt.");
+      return null;
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/personal-information');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Organization': organizationId,
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> personalInfo = jsonDecode(response.body);
+        await _secureStorage.writeData(
+          'personalInformation',
+          jsonEncode(personalInfo),
+        );
+        return personalInfo;
+      } else {
+        print(
+          'Fout bij ophalen van persoonlijke informatie: ${response.statusCode}',
+        );
+        return null;
+      }
+    } catch (e) {
+      print('Fout tijdens ophalen van persoonlijke informatie: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getPersonalInformationFromStorage() async {
+    final String? personalInfoJson = await _secureStorage.readData(
+      'personalInformation',
+    );
+    if (personalInfoJson != null) {
+      return jsonDecode(personalInfoJson);
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> fetchContactInformation(String userId) async {
+    final String? token = await _secureStorage.readData('token');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+
+    if (token == null || organizationId == null) {
+      print("Fout: token of organisatie-ID ontbreekt.");
+      return null;
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/contact-information');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Organization': organizationId,
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print('Fout bij ophalen van contactinformatie: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Fout tijdens ophalen van contactinformatie: $e');
+      return null;
     }
   }
 }
