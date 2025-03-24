@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool? hasToken = await secureStorage.containsKey(key: 'token');
     print('hello:  $hasToken');
     if (hasToken) {
-      print('mounted: $mounted');
+      print('mounted Token: $mounted');
       if (mounted) {
         print('mounted: $mounted');
         context.go('/calendar');
@@ -33,11 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _login(
-    BuildContext context,
-    String email,
-    String password,
-  ) async {
+  Future<void> _login(BuildContext context, String email, String password) async {
     final apiService = ApiService();
     final loginResponse = await apiService.login(email, password);
 

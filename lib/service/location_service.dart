@@ -1,8 +1,6 @@
-import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
@@ -10,7 +8,7 @@ class LocationService {
   LocationService._internal();
 
   final SecureStorageService secure = SecureStorageService();
-  final apiService = ApiService();
+
 
   //Request permission to access location
   Future<bool> requestPermission() async {
@@ -81,7 +79,7 @@ class LocationService {
       List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         Placemark nearestAddress = placemarks.first;
-        return'${nearestAddress.street},${nearestAddress.locality}, ${nearestAddress.country}';
+        return'${nearestAddress.locality}, ${nearestAddress.country}';
       }
     } catch (e) {
       print('Error getting address: $e');
@@ -101,6 +99,15 @@ class LocationService {
     endLatitude, 
     endLongitude
     );
+  }
+
+  String getTimeZone() {
+    final offset = DateTime.now().timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final hours = offset.inHours.abs().toString().padLeft(2, '0');
+    final minutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+    print('GMT$sign$hours$minutes from locSer');
+    return 'GMT$sign$hours$minutes';
   }
       
 }

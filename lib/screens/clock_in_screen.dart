@@ -1,22 +1,14 @@
 import 'package:buildbase_app_flutter/model/client_response.dart';
+import 'package:buildbase_app_flutter/model/clocking_location.dart';
 import 'package:buildbase_app_flutter/model/project_model.dart';
+import 'package:buildbase_app_flutter/model/temp_clocking_request_model.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:provider/provider.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
-import '/service/timer_service.dart';
-import 'package:buildbase_app_flutter/model/client_response.dart';
-import 'package:buildbase_app_flutter/model/project_model.dart';
-import 'package:buildbase_app_flutter/service/api_service.dart';
-import 'package:buildbase_app_flutter/service/location_service.dart';
-import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
-import 'package:flutter/material.dart';
-import 'header_bar_screen.dart';
-import 'package:go_router/go_router.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({Key? key}) : super(key: key);
@@ -57,15 +49,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
     setState(() {
       isLoadingProjects = true;
       selectedProject = null;
-      projects = [];
-    });
-
-    List<ProjectModel> fetchedProjects = await apiService.getProjects(client.id);
-
-    setState(() {
-      projects = fetchedProjects;
+      projects = client.projects;
       isLoadingProjects = false;
     });
+
+    // List<ProjectModel> fetchedProjects = await apiService.getProjects(client.id);
+    // final filteredProjects = fetchedProjects.where((p) => p.clientId == client.id).toList();
+    // setState(() {
+    //   projects = fetchedProjects;
+    // });
   }
 
   void _onClientSelected(ClientResponse? client) {
@@ -84,6 +76,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     if (project != null) {
       setState(() {
         selectedProject = project;
+        secure.writeData('selectedProjectId', project.id);
         secure.writeData('selectedProjectName', project.projectName);
         print(secure.readData('selectedProjectName').toString());
       });
@@ -97,6 +90,45 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
     if (posClient != null && posProject != null && posClient.isNotEmpty && posProject.isNotEmpty){
 
+      try {
+
+        final position = await location.getCurrentLocation();
+        final List<Placemark> placemarks = await placemarkFromCoordinates(
+          position!.latitude, 
+          position.longitude
+        );
+
+        String city = '';
+        String country = '';
+
+        if (placemarks.isNotEmpty){
+          final place = placemarks.first;
+          city = place.locality ?? '';
+          country = place.isoCountryCode ?? '';
+        }
+
+        final ClockingLocation clockingLocation = ClockingLocation(
+          longitude: position.longitude, 
+          latitude: position.latitude, 
+          city: city, 
+          countryCode: country
+          );
+
+        final TempClockingRequestModel clockingRequest = TempClockingRequestModel(
+          clientId: selectedClient!.id, 
+          projectId: selectedProject!.id, 
+          breakTime: false, 
+          clockingLocation: clockingLocation, 
+          comment: "Clocked in via mobileApp"
+        );
+
+        print('before clock in api call in screen');
+
+        await apiService.postTempWork(clockingRequest);
+      } catch (e) {
+        throw Exception(e);
+      }
+
       setState(() {
         _startTime = TimeOfDay.now().format(context);
         _endTime = predictedEndTime.format(context);
@@ -108,19 +140,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
         '/registration-overview',
         extra: {
           'startTime': _startTime,
-          // 'clientName': _selectedClient,
-          // 'projectName': _selectedProject,
           'startDate': DateTime.now().toIso8601String(),
           'endDate': DateTime.now().toIso8601String(),
           'endTime': _endTime,
           'clientName': posClient,
           'projectName': posProject,
-          'date': '27/02/2025' // You can make this dynamic
+          'date': '27/02/2025'
         },
       );
     }
-
-    // Navigate to RegistrationOverviewScreen and pass the selected values
   }
 
   @override
@@ -217,4 +245,6 @@ class _ClockInScreenState extends State<ClockInScreen> {
       ),
     );
   }
+
+
 }

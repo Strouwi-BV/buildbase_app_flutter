@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:buildbase_app_flutter/model/temp_clocking_request_model.dart';
+import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'package:buildbase_app_flutter/model/client_response.dart';
@@ -16,6 +18,7 @@ class ApiService {
   ApiService._internal();
 
   final SecureStorageService _secureStorage = SecureStorageService();
+  final LocationService _locationService = LocationService();
   final String _baseUrl = dotenv.env['API_BASE_URL'] ?? '';
 
   static final _startTimeKey = 'startTime';
@@ -297,7 +300,43 @@ class ApiService {
     }
   }
 
-  //Post
+  //POST /clockings/temp-work
+  Future<void> postTempWork(TempClockingRequestModel clockingRequest) async {
+    String? token = await _secureStorage.readData('token');
+    String? organization = await _secureStorage.readData('organizationId');
+    String? timeZone = await _locationService.getTimeZone();
+
+    final url = Uri.parse('$_baseUrl/clockings/temp-work');
+    final headers = {
+      'Content-Type' : 'application/hal+json',
+      'Authorization' : 'Bearer $token',
+      'Organization' : '$organization',
+      'timeZone' : timeZone,
+    };
+    final body = jsonEncode({
+      'clientId': clockingRequest.clientId,
+      'projectId': clockingRequest.projectId,
+      'breakTime': clockingRequest.breakTime,
+      'clockingLocation': clockingRequest.clockingLocation.toJson(),
+      'comment': clockingRequest.comment,
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 ){
+        print('Status code: ${response.statusCode}');
+        print('Status 200 on post clocking');
+      }
+
+      if (response.statusCode != 200){
+        print('Status code: ${response.statusCode}');
+        print('there was an issue with the clock in request');
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 
   //Get /clients/active/user
   Future<List<ClientResponse>> getClients() async {
@@ -355,4 +394,5 @@ class ApiService {
     } 
 
   }
+
 }
