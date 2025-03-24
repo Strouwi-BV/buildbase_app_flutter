@@ -383,22 +383,17 @@ class ApiService {
         print('Response is 200 client');
 
         return data.map((json) {
-          final calenderResponse = CalenderResponse.fromJson(json);
+          final calenderResponse = CalendarResponse.fromJson(json);
           return Event(
-            title: "Clocking Event", // Standaard naam, kan aangepast worden
             startTime: DateTime(
               calenderResponse.day.year,
               calenderResponse.day.month,
               calenderResponse.day.day,
-              9,
-              0,
             ), // Start om 09:00
             endTime: DateTime(
               calenderResponse.day.year,
               calenderResponse.day.month,
               calenderResponse.day.day,
-              17,
-              0,
             ), // Eindigt om 17:00
             color: Color(
               int.parse(calenderResponse.color.replaceFirst("#", "0xFF")),
@@ -411,6 +406,36 @@ class ApiService {
     } catch (e) {
       print('Error fetching events: $e');
       throw Exception(e);
+    }
+  }
+
+  Future<ClockingDayView> getClockingDayView(String day) async {
+    String? token = await _secureStorage.readData('token');
+    String? userId = await _secureStorage.readData('id');
+
+    final param = {'userId': userId, 'date': day};
+    final url = Uri.parse(
+      '$_baseUrl/clockings/day_overview',
+    ).replace(queryParameters: param);
+    print(url);
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print('Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return ClockingDayView.fromJson(data);
+      } else {
+        throw Exception("Failed to load events");
+      }
+    } catch (e) {
+      print('Error fetching events: $e');
+      throw Exception(e.toString());
     }
   }
 }

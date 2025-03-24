@@ -25,7 +25,6 @@ class EventIndicator extends StatelessWidget {
   }
 }
 
-// EventTile klasse
 class EventTile extends StatelessWidget {
   final Event event;
   final VoidCallback onDelete; // Callback om het evenement te verwijderen
@@ -41,7 +40,6 @@ class EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(event.title),
       subtitle: Text(
         '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - ${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}',
       ),
@@ -79,11 +77,9 @@ class EventHourTile extends StatelessWidget {
   final Event event;
   final int index;
   final int totalEvents;
-  final int dayIndex; // Nieuwe property om de dagindex door te geven
-  final CalendarView
-  calendarView; // Nieuwe property om de kalenderweergave door te geven
-  final Function(BuildContext, Event)
-  showEventDetails; // Callback functie voor het tonen van de event details
+  final int dayIndex;
+  final CalendarView calendarView;
+  final Function(BuildContext, Event) showEventDetails;
 
   const EventHourTile({
     Key? key,
@@ -103,40 +99,38 @@ class EventHourTile extends StatelessWidget {
       event.startTime.day,
       0,
       0,
+      0,
     );
+
     final startMinutes = event.startTime.difference(startOfDay).inMinutes;
     final endMinutes = event.endTime.difference(startOfDay).inMinutes;
-    const totalMinutesInDay = 24 * 60; // 1440
 
-    final top = (startMinutes / totalMinutesInDay) * 1440;
-    final height = ((endMinutes - startMinutes) / totalMinutesInDay) * 1440;
+    final top = startMinutes.toDouble();
+    final height = (endMinutes - startMinutes).toDouble();
 
-    // Bepaal de breedte per evenement
-    double widthPerEvent;
-    double left;
+    // Bepaal de positie en grootte
+    double left, width;
+    final screenWidth = MediaQuery.of(context).size.width;
+    const timeColumnWidth = 50.0;
+    final availableWidth = screenWidth - timeColumnWidth;
+
     if (calendarView == CalendarView.day) {
-      // In dagweergave: verdeel de breedte over de overlappende evenementen
-      widthPerEvent = (MediaQuery.of(context).size.width - 50) / totalEvents;
-      left = 50 + (index * widthPerEvent);
+      // Voor dagweergave: bereken overlappingen en plaats events onder elkaar waar mogelijk
+      width = availableWidth * 0.9; // 90% van beschikbare breedte
+      left = timeColumnWidth + (availableWidth * 0.05); // 5% marge
     } else {
-      // In weekweergave: verdeeld over de week
-      widthPerEvent =
-          (MediaQuery.of(context).size.width - 50) / (totalEvents * 7);
-      left =
-          50 +
-          (index * widthPerEvent) +
-          (dayIndex * (MediaQuery.of(context).size.width - 50) / 7);
+      // Voor weekweergave: verdeel over de dagen
+      width = availableWidth / 7;
+      left = timeColumnWidth + (dayIndex * width);
     }
 
     return Positioned(
       top: top,
       left: left,
-      width: widthPerEvent,
+      width: width,
       height: height,
       child: GestureDetector(
-        onTap: () {
-          showEventDetails(context, event);
-        },
+        onTap: () => showEventDetails(context, event),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 1.0),
           decoration: BoxDecoration(
@@ -144,19 +138,15 @@ class EventHourTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(5.0),
           ),
           child: ListTile(
-            title: Text(
-              event.title,
-              style: TextStyle(
-                fontSize: calendarView == CalendarView.day ? 14 : 10,
-              ), // Grotere tekst in dagweergave
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4.0),
             subtitle:
                 calendarView == CalendarView.day
                     ? Text(
-                      '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - ${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}',
+                      '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')} - '
+                      '${event.endTime.hour}:${event.endTime.minute.toString().padLeft(2, '0')}',
                       style: const TextStyle(fontSize: 12),
                     )
-                    : null, // Geen subtitel in weekweergave
+                    : null,
           ),
         ),
       ),
@@ -186,33 +176,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _fetchEvents() async {
-    DateTime start, end;
-
-    if (_calendarView == CalendarView.month) {
-      start = DateTime(_focusedDay.year, _focusedDay.month, 1);
-      end = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
-    } else if (_calendarView == CalendarView.week) {
-      start = _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
-      end = start.add(Duration(days: 6));
-    } else {
-      start = _selectedDay;
-      end = _selectedDay;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      List<Event> events = await ApiService().getClockingMonthView(start, end);
-      setState(() {
-        _events = events;
-        _isLoading = false;
-      });
+      if (_calendarView == CalendarView.day) {
+        final formattedDate = _formatDate(_selectedDay);
+        final response = await ApiService().getClockingDayView(formattedDate);
+        _events = response.clockings;
+      } else if (_calendarView == CalendarView.week) {
+        final startOfWeek = _focusedDay.subtract(
+          Duration(days: _focusedDay.weekday - 1),
+        );
+        _events = [];
+
+        // Haal data op voor elke dag van de week
+        for (int i = 0; i < 7; i++) {
+          final currentDay = startOfWeek.add(Duration(days: i));
+          final formattedDate = _formatDate(currentDay);
+          try {
+            final response = await ApiService().getClockingDayView(
+              formattedDate,
+            );
+            _events.addAll(response.clockings);
+          } catch (e) {
+            print("Error loading events for $formattedDate: $e");
+          }
+        }
+      } else {
+        _events = await ApiService().getClockingMonthView(
+          DateTime(_focusedDay.year, _focusedDay.month, 1),
+          DateTime(_focusedDay.year, _focusedDay.month + 1, 0),
+        );
+      }
     } catch (e) {
-      print("Error loading events: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Fout bij laden events: ${e.toString()}")),
+      );
+    } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
   void _deleteEvent(Event event) {
@@ -273,19 +278,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  /*List<Event> _getEventsForDay(DateTime day) {
-    final List<Event> dayEvents = [];
-    for (var event in _events) {
-      final eventDate = DateTime(
-        event.startTime.year,
-        event.startTime.month,
-        event.startTime.day,
-      );
-      if (isSameDay(eventDate, day)) {
-        dayEvents.add(event);
-      }
-    }
-  }*/
   List<Event> _getEventsForDay(DateTime day) {
     return _events.where((event) {
       final eventDate = DateTime(
@@ -382,6 +374,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               headerStyle: const HeaderStyle(formatButtonVisible: false),
               calendarFormat: _calendarFormat,
+              rowHeight: 100,
               focusedDay: _focusedDay,
               firstDay: DateTime.utc(2010, 10, 16),
               lastDay: DateTime.utc(2030, 3, 14),
@@ -397,17 +390,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onPageChanged: _onPageChanged,
               eventLoader: _getEventsForDay,
               calendarBuilders: CalendarBuilders(
-                markerBuilder: (context, day, events) {
-                  if (events.isNotEmpty) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          events
-                              .map((e) => EventIndicator(event: e as Event))
-                              .toList(),
-                    );
-                  }
-                  return null;
+                markerBuilder: (context, date, events) {
+                  if (events.isEmpty) return null;
+
+                  final visibleCount = 4; // Aantal bolletjes om te tonen
+                  final extraCount = events.length - visibleCount;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Toon eerste X bolletjes
+                      ...events
+                          .take(visibleCount)
+                          .map((e) => EventIndicator(event: e as Event)),
+                      // Toon "+X" indicator als er meer zijn
+                      if (extraCount > 0)
+                        Container(
+                          margin: const EdgeInsets.only(left: 2),
+                          child: Text(
+                            '+',
+                            style: TextStyle(
+                              color:
+                                  Colors
+                                      .grey, // Correcte syntax voor zwarte kleur
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
                 },
               ),
             ),
@@ -600,18 +611,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 },
               ),
             ),
-          Container(
-            margin: const EdgeInsets.all(16.0),
-            child: IconButton(
-              icon: const Icon(Icons.tab),
-              color: Colors.black,
-              onPressed:
-                  () => ApiService().getClockingMonthView(
-                    DateTime(_focusedDay.year, _focusedDay.month, 1),
-                    DateTime(_focusedDay.year, _focusedDay.month + 1, 0),
-                  ),
-            ),
-          ),
         ],
       ),
     );

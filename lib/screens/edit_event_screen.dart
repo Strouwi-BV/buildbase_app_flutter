@@ -12,7 +12,6 @@ class EditEventScreen extends StatefulWidget {
 }
 
 class _EditEventScreenState extends State<EditEventScreen> {
-  late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late DateTime _startTime;
   late DateTime _endTime;
@@ -22,7 +21,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.event.title);
     _descriptionController = TextEditingController(
       text: widget.event.description,
     );
@@ -34,7 +32,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
@@ -108,7 +105,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
             icon: const Icon(Icons.check, color: Colors.white),
             onPressed: () {
               final updatedEvent = Event(
-                title: _titleController.text,
                 description: _descriptionController.text,
                 startTime: _startTime,
                 endTime: _endTime,
@@ -132,13 +128,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    prefixIcon: Icon(Icons.event),
-                  ),
-                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _descriptionController,

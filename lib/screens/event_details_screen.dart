@@ -41,20 +41,6 @@ class EventDetailsScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.event),
-                    const SizedBox(width: 10),
-                    Text(
-                      event.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Row(
-                  children: [
                     const Icon(Icons.description),
                     const SizedBox(width: 10),
                     Expanded(

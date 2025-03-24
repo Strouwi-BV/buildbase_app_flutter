@@ -37,7 +37,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
         _selectedEndTime.minute,
       );
       final newEvent = Event(
-        title: _titleController.text,
         description: _descriptionController.text,
         startTime: startDateTime,
         endTime: endDateTime,
