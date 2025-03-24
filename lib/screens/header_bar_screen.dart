@@ -104,11 +104,9 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
 
     return FutureBuilder<String?>(
       future: _secureStorage.read(key: 'avatarUrl').then((storedAvatar) async {
-        if (storedAvatar != null) return storedAvatar;
-        final avatarUrl = await ApiService().usersAvatarComplete();
-        if (avatarUrl != null && avatarUrl.isNotEmpty) {
-          await _secureStorage.write(key: 'avatarUrl', value: avatarUrl);
-          return avatarUrl;
+        if (storedAvatar != null) {
+          print('pijl');
+          return storedAvatar;
         }
         return null;
       }),

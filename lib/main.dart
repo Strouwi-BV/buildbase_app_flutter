@@ -11,12 +11,13 @@ import '/screens/calendar_screen.dart';
 import '/screens/clock_in_screen.dart';
 import '/screens/profile_screen.dart';
 import '/screens/change_image_screen.dart';
+import '/screens/edit_clockin_screen.dart';
+import '/screens/event_details_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:buildbase_app_flutter/screens/registration_overview_screen.dart';
-import 'package:buildbase_app_flutter/screens/clocking_details_screen.dart';
-import 'package:provider/provider.dart';
-import '/service/timer_service.dart';
-
+import '/screens/calendar_screen.dart'
+    as calendar; // Importeer CalendarScreen.dart en noem het calendar
+import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
+import 'package:buildbase_app_flutter/screens/event_details_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -28,85 +29,11 @@ void main() async {
     await Geolocator.requestPermission();
   }
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => TimerProvider(),
-      child: MyApp(),
-    ),
-  );
-  // runApp(MyApp());
+  runApp(MyApp());
 }
 
-//bib@bib.be
-//Test123
 class MyApp extends StatelessWidget {
-  MyApp({Key? key}) : super(key: key);
-  final GoRouter _router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/', 
-        builder: (context, state) => const ClockInScreen()
-      ),
-      GoRoute(
-        path: '/calendar',
-        builder: (context, state) {
-          final String? data = state.extra as String?;
-          return CalendarScreen(data: data ?? "No data here");
-        },
-      ),
-      GoRoute(
-          path: '/clock-in', 
-          builder: (context, state) => const ClockInScreen()
-        ),
-      GoRoute(
-        path: '/profile/:userId',
-        builder: (context, state) {
-          final userId = int.tryParse(state.pathParameters['userId'] ?? '') ?? 0;
-          return ProfileScreen(userId: userId);
-        },
-      ),
-      GoRoute(
-        path: '/change-image',
-        builder: (context, state) => ChangeImageScreen(onImageChanged: () {}),
-      ),
-      GoRoute(
-        path: '/menu', 
-        builder: (
-          context, 
-          state) => MenuScreen()
-      ),
-      GoRoute(
-        path: '/log-in',
-        builder: (context, state) {
-          return const LoginScreen();
-        },
-      ),
-      GoRoute(
-        path: '/registration-overview',
-        builder: (context, state) {
-          final data = state.extra as Map<String, dynamic>;
-          return RegistrationOverviewScreen(
-              startDate: data['startDate'],
-              startTime: data['startTime'],
-              endDate: data['endDate'],
-              clientName: data['clientName'],
-              projectName: data['projectName'],
-              date: data['date']);
-      }),
-      GoRoute(
-        path: '/clocking-details',
-        builder: (context, state) => const ClockingDetailsScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/live-clocking-location',
-        builder: (context, state) => const LiveClockingLocationScreen(),
-      ),
-    ],
-  );
+  MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -118,20 +45,16 @@ class MyApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   routes: [
-    GoRoute(
-      path: '/', 
-      builder: (context, state) => ClockInScreen()
-    ),
+    GoRoute(path: '/', builder: (context, state) => LoginScreen()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) {
-        final String? data = state.extra as String?;
-        return CalendarScreen(data: data ?? "No data here");
+        return CalendarScreen();
       },
     ),
     GoRoute(
-      path: '/clock-in', 
-      builder: (context, state) => ClockInScreen()
+      path: '/clock-in',
+      builder: (context, state) => const ClockInScreen(),
     ),
     GoRoute(
       path: '/profile/:userId',
@@ -142,12 +65,9 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/change-image',
-      builder: (context, state) => ChangeImageScreen(onImageChanged: () {}),
+      builder: (context, state) => ChangeImageScreen(),
     ),
-    GoRoute(
-      path: '/menu', 
-      builder: (context, state) => MenuScreen()
-    ),
+    GoRoute(path: '/menu', builder: (context, state) => MenuScreen()),
     GoRoute(
       path: '/log-in',
       builder: (context, state) {
@@ -172,91 +92,89 @@ final GoRouter _router = GoRouter(
         return const LiveClockingLocationScreen();
       },
     ),
-    
-
   ],
 );
 
-Widget buildMenuItems(BuildContext context) {
-  final timerProvider = Provider.of<TimerProvider>(context);
-
+Widget buildMenuItems(BuildContext context, String currentRoute) {
   return Container(
     color: const Color(0xff13263B),
+    padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
     child: Column(
       children: [
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.calendar_today_sharp),
-          title: const Text('Calendar'),
-          onTap: () {
-            context.go('/calendar', extra: "Meeting at 11:30 AM");
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.calendar_today_sharp,
+          title: 'Calendar',
+          route: '/calendar',
+          isActive: currentRoute == '/calendar',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.access_time_outlined),
-          title: timerProvider.elapsedTime != "00:00:00"
-              ? Text(timerProvider.elapsedTime)
-              : const Text('Clock In'),
-          onTap: () {
-            if (timerProvider.elapsedTime != "00:00:00") {
-              // Geef de benodigde data door
-              context.go(
-                '/registration-overview',
-                extra: {
-                  'startDate': DateTime.now().toIso8601String(),
-                  'startTime': TimeOfDay.now().format(context),
-                  'endDate': DateTime.now().toIso8601String(),
-                  'endTime': TimeOfDay.now().format(context),
-                  'clientName': 'Strouwi', // Vervang dit door dynamische data
-                  'projectName': 'Buildbase App', // Vervang dit door dynamische data
-                  'date': '27/02/2025', // Vervang dit door dynamische data
-                },
-              );
-            } else {
-              context.go('/clock-in');
-            }
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.access_time_outlined,
+          title: 'Clock In',
+          route: '/clock-in',
+          isActive: currentRoute == '/clock-in',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.account_circle),
-          title: const Text('Profile'),
-          onTap: () {
-            context.go('/profile/1');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.account_circle,
+          title: 'Profile',
+          route: '/profile/1',
+          isActive: currentRoute.startsWith('/profile'),
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Login'),
-          onTap: () {
-            context.go('/log-in');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.login,
+          title: 'Login',
+          route: '/log-in',
+          isActive: currentRoute == '/log-in',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Settings'),
-          onTap: () {
-            context.go('/settings');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.settings,
+          title: 'Settings',
+          route: '/settings',
+          isActive: currentRoute == '/settings',
         ),
-        ListTile(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          leading: const Icon(Icons.login),
-          title: const Text('Live Clocking Location'),
-          onTap: () {
-            context.go('/live-clocking-location');
-          },
+        _buildMenuItem(
+          context,
+          icon: Icons.location_on,
+          title: 'Live Clocking Location',
+          route: '/live-clocking-location',
+          isActive: currentRoute == '/live-clocking-location',
         ),
       ],
     ),
+  );
+}
+
+Widget _buildMenuItem(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required String route,
+  required bool isActive,
+}) {
+  return ListTile(
+    iconColor: isActive ? const Color(0xFFc1ffbf) : Colors.white,
+    textColor: isActive ? const Color(0xFFc1ffbf) : Colors.white,
+    leading: Icon(icon),
+    title:
+        isActive
+            ? Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: const Color(0xFFc1ffbf), width: 2),
+                ),
+              ),
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            )
+            : Text(title),
+    onTap: () {
+      context.go(route);
+    },
   );
 }
