@@ -255,39 +255,27 @@ class ApiService {
       print('Statuscode: ${response.statusCode}');
 
       if (response.statusCode == 200) {
+        print(response.body);
         final jsonResponse = jsonDecode(response.body);
         final tempWorkClockIn = ClockingTempWorkResponse.fromJson(jsonResponse);
-        final String startTimeJson = json.encode(
-          tempWorkClockIn.startTime.toJson(),
-        );
+        final String startTimeJson = json.encode(tempWorkClockIn.startTime.toJson());
         final String endTimeJson = json.encode(tempWorkClockIn.endTime);
-        final String locationJson = json.encode(
-          tempWorkClockIn.clockingLocation,
-        );
+        final String locationJson = json.encode(tempWorkClockIn.clockingLocation);
         final String fullResponse = json.encode(tempWorkClockIn.toJson());
+        final String? startDateTime;
 
         await _secureStorage.writeData('id', tempWorkClockIn.id);
         await _secureStorage.writeData('userId', tempWorkClockIn.userId);
-        await _secureStorage.writeData(
-          'clockingType',
-          tempWorkClockIn.clockingType,
-        );
-        await _secureStorage.writeData('day', tempWorkClockIn.day);
+        await _secureStorage.writeData('clockingType', tempWorkClockIn.clockingType);
+        await _secureStorage.writeData('day', tempWorkClockIn.day ?? '');
         await _secureStorage.writeData('comment', tempWorkClockIn.comment);
         await _secureStorage.writeData('startTime', startTimeJson);
         await _secureStorage.writeData('endTime', endTimeJson);
         await _secureStorage.writeData('clientId', tempWorkClockIn.clientId);
         await _secureStorage.writeData('projectId', tempWorkClockIn.projectId);
-        await _secureStorage.writeData(
-          'breakTime',
-          tempWorkClockIn.breakTime.toString(),
-        );
+        await _secureStorage.writeData('breakTime', tempWorkClockIn.breakTime.toString());
         await _secureStorage.writeData('clockingLocation', locationJson);
-
-        await _secureStorage.writeData(
-          'clockingTempWorkResponse',
-          fullResponse,
-        );
+        await _secureStorage.writeData('clockingTempWorkResponse', fullResponse);
 
         return tempWorkClockIn;
       } else {
@@ -334,7 +322,7 @@ class ApiService {
         print('there was an issue with the clock in request');
       }
     } catch (e) {
-      throw Exception(e);
+      throw Exception(e); 
     }
   }
 

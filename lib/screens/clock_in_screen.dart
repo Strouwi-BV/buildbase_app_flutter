@@ -98,8 +98,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
           position.longitude
         );
 
-        String city = '';
-        String country = '';
+        String? city = '';
+        String? country = '';
 
         if (placemarks.isNotEmpty){
           final place = placemarks.first;
@@ -125,6 +125,33 @@ class _ClockInScreenState extends State<ClockInScreen> {
         print('before clock in api call in screen');
 
         await apiService.postTempWork(clockingRequest);
+
+        final tempWorkResponse = await apiService.getTempWork();
+          // print('Request: ${tempWorkResponse!.toJson()}');
+
+        if (tempWorkResponse != null){
+          String startTime = tempWorkResponse.startTime.toString();
+          String? endTime = tempWorkResponse.endTime.toString();
+          String clientName = tempWorkResponse.clientId;
+          String projectName = tempWorkResponse.projectId;
+          String? day = tempWorkResponse.day;
+
+          String startDate = tempWorkResponse.startTime.getUtcTimeIso();
+          String? endDate = tempWorkResponse.endTime?.getUtcTimeIso();
+
+          context.go(
+            '/registration-overview',
+            extra: {
+              'startTime': startTime,
+              'startDate': startDate,
+              'endDate': endDate,
+              'endTime': endTime,
+              'clientName': clientName,
+              'projectName': projectName,
+              'date': day,
+            },
+          );
+        }
       } catch (e) {
         throw Exception(e);
       }
@@ -136,18 +163,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
         // _endTime = predictedEndTime.format(context);
       });
 
-      context.go(
-        '/registration-overview',
-        extra: {
-          'startTime': _startTime,
-          'startDate': DateTime.now().toIso8601String(),
-          'endDate': DateTime.now().toIso8601String(),
-          'endTime': _endTime,
-          'clientName': posClient,
-          'projectName': posProject,
-          'date': '27/02/2025'
-        },
-      );
+      
     }
   }
 

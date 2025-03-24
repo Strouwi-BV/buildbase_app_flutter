@@ -8,10 +8,10 @@ class ClockingTempWorkResponse {
   final String id;
   final String userId;
   final String clockingType;
-  final String day;
+  final String? day;
   final String comment;
   final DetailedTimeStamp startTime;
-  final DetailedTimeStamp endTime;
+  final DetailedTimeStamp? endTime;
   final String clientId;
   final String projectId;
   final bool breakTime;
@@ -21,10 +21,10 @@ class ClockingTempWorkResponse {
     required this.id,
     required this.userId,
     required this.clockingType,
-    required this.day,
+    this.day,
     required this.comment,
     required this.startTime,
-    required this.endTime,
+    this.endTime,
     required this.clientId,
     required this.projectId,
     required this.breakTime,
@@ -39,7 +39,9 @@ class ClockingTempWorkResponse {
       day: json['day'], 
       comment: json['comment'], 
       startTime: DetailedTimeStamp.fromJson(json['startTime']), 
-      endTime: DetailedTimeStamp.fromJson(json['endTime']), 
+      endTime: json['endTime'] != null
+          ? DetailedTimeStamp.fromJson(json['endTime'])
+          : null,
       clientId: json['clientId'], 
       projectId: json['projectId'], 
       breakTime: json['breakTime'], 
@@ -55,7 +57,7 @@ class ClockingTempWorkResponse {
       'day': day,
       'comment': comment,
       'startTime': startTime.toJson(),
-      'endTime': endTime.toJson(),
+      'endTime': endTime?.toJson(),
       'clientId': clientId,
       'projectId': projectId,
       'beakTime': breakTime,
@@ -71,7 +73,7 @@ class ClockingTempWorkResponse {
       'day': day,
       'comment': comment,
       'startTime': startTime.toJson(),
-      'endTime': endTime.toJson(),
+      'endTime': endTime?.toJson(),
       'clientId': clientId,
       'projectId': projectId,
       'beakTime': breakTime,

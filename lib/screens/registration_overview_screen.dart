@@ -13,10 +13,10 @@ import 'dart:async';
 class RegistrationOverviewScreen extends StatefulWidget {
   final String startDate;
   final String startTime;
-  final String endDate;
+  final String? endDate;
   final String clientName;
   final String projectName;
-  final String date;
+  final String? date;
 
   const RegistrationOverviewScreen({
     Key? key,
@@ -68,8 +68,8 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
     String? selectedProject = await secure.readData('selectedProjectName');
     
     setState(() {
-      selectedClientName = selectedClient!;
-      selectedProjectName = selectedProject!;
+      selectedClientName = selectedClient ?? '';
+      selectedProjectName = selectedProject ?? '';
     });
   }
 
@@ -107,22 +107,22 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   children: [
                     const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text('Terug naar ${widget.date}',
+                    Text('Terug naar ${widget.date ?? ''}',
                         style: const TextStyle(
                             fontSize: 14, color: Colors.grey)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text('Terug naar ${widget.date}',
-                      style: const TextStyle(
-                          fontSize: 14, color: Colors.grey)),
-                ],
-              ),
+              // const SizedBox(height: 24),
+              // Row(
+              //   children: [
+              //     const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
+              //     const SizedBox(width: 4),
+              //     Text('Terug naar ${widget.date}',
+              //         style: const TextStyle(
+              //             fontSize: 14, color: Colors.grey)),
+              //   ],
+              // ),
             // ],
               const SizedBox(height: 24),
               Row(
@@ -130,7 +130,7 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   Expanded(
                       child: _buildUnderlinedField(
                           'Van Dag *',
-                          _formatDate(widget.startDate),
+                          widget.startDate != null ? _formatDate(widget.startDate!) : '',
                           Icons.calendar_today)),
                   const SizedBox(width: 16),
                   Expanded(
@@ -144,7 +144,7 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   Expanded(
                       child: _buildUnderlinedField(
                           'Tot Dag *',
-                          _formatDate(widget.endDate),
+                          widget.endDate != null ? _formatDate(widget.endDate!) : '',
                           Icons.calendar_today)),
                   const SizedBox(width: 16),
                   Expanded(

@@ -31,4 +31,14 @@ class DetailedTimeStamp {
       'timezone': timezone,
     };
   }
+
+  String getLocalTimeIso() {
+    final parsedDate = DateTime.parse(localTime);
+    return parsedDate.toIso8601String();
+  }
+
+  String getUtcTimeIso() {
+    final parsedDate = DateTime.parse(utcTime);
+    return parsedDate.toIso8601String();
+  }
 }
