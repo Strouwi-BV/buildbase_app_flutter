@@ -294,111 +294,140 @@ class ApiService {
     }
   }
 
-  // Functie om de profielgegevens op te halen
-  Future<Map<String, dynamic>?> fetchUserProfile(String userId) async {
-    try {
-      // Maak een HTTP-aanroep om de gebruikersgegevens op te halen
-      final response = await http.get( Uri.parse('$_baseUrl/users/$userId/profile'), // Pas de URL aan naar jouw endpoint
-        headers: {
-          'Authorization': 'Bearer jouw-token-hier', // Voeg eventueel een token toe als dat nodig is
-        },
-      );
+  Future<Map<String, dynamic>?> getBasicUserById() async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
 
-      // Controleer de statuscode van de response
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID of Token ontbreekt.");
+      return null;
+    }
+
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/basic');
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final http.Response response = await http.get(url, headers: headers);
+
       if (response.statusCode == 200) {
-        // Parse de JSON-data als de aanvraag succesvol is
-        return json.decode(response.body); // Zorg ervoor dat je 'dart:convert' hebt geïmporteerd
+        final Map<String, dynamic> userData = jsonDecode(response.body);
+        return userData;
       } else {
-        // Fout bij ophalen van data
-        print('Fout bij ophalen van profielgegevens: ${response.statusCode}');
+        print('Failed to fetch user data: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Fout bij de API-aanroep: $e');
+      print('Error fetching user data: $e');
       return null;
     }
   }
 
-  Future<Map<String, dynamic>?> fetchPersonalInformation(String userId) async {
-    final String? token = await _secureStorage.readData('token');
+  Future<Map<String, dynamic>?> getUserPersonalInformation() async {
+    final String? userId = await _secureStorage.readData('id');
     final String? organizationId = await _secureStorage.readData(
       'organizationId',
     );
+    final String? token = await _secureStorage.readData('token');
 
-    if (token == null || organizationId == null) {
-      print("Fout: token of organisatie-ID ontbreekt.");
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID of Token ontbreekt.");
       return null;
     }
 
-    final url = Uri.parse('$_baseUrl/users/$userId/personal-information');
-    final headers = {
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/personal-information');
+    final Map<String, String> headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
       'Organization': organizationId,
+      'Authorization': 'Bearer $token',
     };
 
     try {
-      final response = await http.get(url, headers: headers);
+      final http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> personalInfo = jsonDecode(response.body);
-        await _secureStorage.writeData(
-          'personalInformation',
-          jsonEncode(personalInfo),
-        );
         return personalInfo;
       } else {
-        print(
-          'Fout bij ophalen van persoonlijke informatie: ${response.statusCode}',
-        );
+        print('Failed to fetch personal information: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Fout tijdens ophalen van persoonlijke informatie: $e');
+      print('Error fetching personal information: $e');
       return null;
     }
   }
 
-  Future<Map<String, dynamic>?> getPersonalInformationFromStorage() async {
-    final String? personalInfoJson = await _secureStorage.readData(
-      'personalInformation',
-    );
-    if (personalInfoJson != null) {
-      return jsonDecode(personalInfoJson);
-    }
-    return null;
-  }
-
-  Future<Map<String, dynamic>?> fetchContactInformation(String userId) async {
-    final String? token = await _secureStorage.readData('token');
+  Future<Map<String, dynamic>?> getUserContactInformation() async {
+    final String? userId = await _secureStorage.readData('id');
     final String? organizationId = await _secureStorage.readData(
       'organizationId',
     );
+    final String? token = await _secureStorage.readData('token');
 
-    if (token == null || organizationId == null) {
-      print("Fout: token of organisatie-ID ontbreekt.");
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID of Token ontbreekt.");
       return null;
     }
 
-    final url = Uri.parse('$_baseUrl/users/$userId/contact-information');
-    final headers = {
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/contact-information');
+    final Map<String, String> headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
       'Organization': organizationId,
+      'Authorization': 'Bearer $token',
     };
 
     try {
-      final response = await http.get(url, headers: headers);
+      final http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final Map<String, dynamic> contactInfo = jsonDecode(response.body);
+        return contactInfo;
       } else {
-        print('Fout bij ophalen van contactinformatie: ${response.statusCode}');
+        print('Failed to fetch contact information: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Fout tijdens ophalen van contactinformatie: $e');
+      print('Error fetching contact information: $e');
       return null;
+    }
+  }
+
+  Future<bool> updateUserPersonalInformation(Map<String, dynamic> personalInfo) async {
+    try {
+      final String? token = await _secureStorage.readData('token');
+      final String? organization = await _secureStorage.readData('organization');
+      final int? userId = int.tryParse(await _secureStorage.readData('userId') ?? '');
+
+      if (token == null || organization == null || userId == null) {
+        throw Exception("Missing authentication data");
+      }
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/users/$userId/personal-information'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'organization': organization,
+        },
+        body: jsonEncode(personalInfo),
+      );
+
+      if (response.statusCode == 200) {
+        return true; // Update gelukt
+      } else {
+        print("Error updating user personal information: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Exception in updateUserPersonalInformation: $e");
+      return false;
     }
   }
 }
