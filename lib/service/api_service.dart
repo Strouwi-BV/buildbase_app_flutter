@@ -399,34 +399,164 @@ class ApiService {
     }
   }
 
-  Future<bool> updateUserPersonalInformation(Map<String, dynamic> personalInfo) async {
+  // Future<bool> updateUserPersonalInformation(
+  //   String userId,
+  //   Map<String, dynamic> updatedData,
+  // ) async {
+  //   final url = '$_baseUrl/users/$userId/personal-information';
+
+  //   final token = await _secureStorage.readData('auth_token');
+  //   final headers = {
+  //     'Authorization': 'Bearer $token',
+  //     'Content-Type': 'application/json',
+  //     'Organization': 'your-organization-id', // Pas dit aan indien nodig
+  //   };
+
+  //   final response = await http.put(
+  //     Uri.parse(url),
+  //     headers: headers,
+  //     body: jsonEncode(updatedData),
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     return true; // Update is gelukt
+  //   } else {
+  //     print('Fout bij updaten: ${response.body}');
+  //     return false;
+  //   }
+  // }
+
+  Future<Map<String, dynamic>?> getUserWorkSchedule() async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID or Token is missing.");
+      return null;
+    }
+
+    final Uri url = Uri.parse('$_baseUrl/users/$userId/work-schedule');
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+      'Authorization': 'Bearer $token',
+    };
+
     try {
-      final String? token = await _secureStorage.readData('token');
-      final String? organization = await _secureStorage.readData('organization');
-      final int? userId = int.tryParse(await _secureStorage.readData('userId') ?? '');
-
-      if (token == null || organization == null || userId == null) {
-        throw Exception("Missing authentication data");
-      }
-
-      final response = await http.put(
-        Uri.parse('$_baseUrl/users/$userId/personal-information'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-          'organization': organization,
-        },
-        body: jsonEncode(personalInfo),
-      );
+      final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
-        return true; // Update gelukt
+        final Map<String, dynamic> workScheduleData = jsonDecode(response.body);
+        return workScheduleData;
       } else {
-        print("Error updating user personal information: ${response.body}");
+        print('Failed to fetch work schedule: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching work schedule: $e');
+      return null;
+    }
+  }
+
+  Future<bool> updateUserPersonalInformation(
+    Map<String, dynamic> updatedData,
+  ) async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    print('UserID: $userId'); // Debug print
+    print('OrganizationID: $organizationId'); // Debug print
+    print('Token: $token'); // Debug print
+    print('Updated Data: $updatedData'); // Debug print
+
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID, or Token is missing.");
+      return false;
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/personal-information');
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: headers,
+        body: jsonEncode(updatedData),
+      );
+
+      print('Response Status Code: ${response.statusCode}'); // Debug print
+      print('Response Body: ${response.body}'); // Debug print
+
+      if (response.statusCode == 200) {
+        print('Personal information updated successfully');
+        return true;
+      } else {
+        print('Failed to update personal information');
+        print('Error details: ${response.body}');
         return false;
       }
     } catch (e) {
-      print("Exception in updateUserPersonalInformation: $e");
+      print('Error updating personal information: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateUserContactInformation(
+    Map<String, dynamic> updatedData,
+  ) async {
+    final String? userId = await _secureStorage.readData('id');
+    final String? organizationId = await _secureStorage.readData(
+      'organizationId',
+    );
+    final String? token = await _secureStorage.readData('token');
+
+    print('UserID: $userId'); // Debug print
+    print('OrganizationID: $organizationId'); // Debug print
+    print('Token: $token'); // Debug print
+    print('Updated Contact Data: $updatedData'); // Debug print
+
+    if (userId == null || organizationId == null || token == null) {
+      print("User ID, Organization ID, or Token is missing.");
+      return false;
+    }
+
+    final url = Uri.parse('$_baseUrl/users/$userId/contact-information');
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+      'Organization': organizationId,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: headers,
+        body: jsonEncode(updatedData),
+      );
+
+      print('Response Status Code: ${response.statusCode}'); // Debug print
+      print('Response Body: ${response.body}'); // Debug print
+
+      if (response.statusCode == 200) {
+        print('Contact information updated successfully');
+        return true;
+      } else {
+        print('Failed to update contact information');
+        print('Error details: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating contact information: $e');
       return false;
     }
   }
