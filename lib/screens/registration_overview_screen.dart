@@ -155,7 +155,7 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
 
   void _stopTimer() {
     DateTime now = DateTime.now();
-    DateTime startTime = DateTime.parse(widget.startDate).toUtc();
+    DateTime startTime = DateTime.parse(widget.startDate).toUtc().add(const Duration(hours: 1));
     print('testing stop timer ${now.difference(startTime).inSeconds} verschil');
     if (now.difference(startTime).inSeconds < 60) {
       print('You need to clock in for more than a minute');
