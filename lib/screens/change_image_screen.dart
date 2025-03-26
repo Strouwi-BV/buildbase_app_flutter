@@ -60,6 +60,7 @@ class _ChangeImageScreenState extends State<ChangeImageScreen> {
       _avatarUrl = null;
       _newImage = null;
     });
+    const FlutterSecureStorage().write(key: 'avatarUrl', value: _avatarUrl);
   }
 
   @override

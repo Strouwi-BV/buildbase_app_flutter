@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:buildbase_app_flutter/model/temp_clocking_request_model.dart';
 import 'package:buildbase_app_flutter/service/location_service.dart';
+import 'package:buildbase_app_flutter/model/event_model.dart';
+import 'package:flutter/services.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'package:buildbase_app_flutter/model/client_response.dart';
@@ -183,7 +185,6 @@ class ApiService {
     }
   }
 
-
   //Create full link to get Avatar
   Future<String?> usersAvatarComplete() async {
     final String? avatarLink = await usersAvatarLink();
@@ -328,20 +329,19 @@ class ApiService {
 
   //Get /clients/active/user
   Future<List<ClientResponse>> getClients() async {
-
     String? token = await _secureStorage.readData('token');
     String? organization = await _secureStorage.readData('organizationId');
     String? userId = await _secureStorage.readData('id');
     userId = await _secureStorage.readData('id');
 
-    final param =  {'userId': '$userId'};
-    final url = Uri.parse('$_baseUrl/clients/active/user').replace(queryParameters: {
-      'userId': userId,
-    });
+    final param = {'userId': '$userId'};
+    final url = Uri.parse(
+      '$_baseUrl/clients/active/user',
+    ).replace(queryParameters: {'userId': userId});
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
-      'Organization': '$organization'
+      'Organization': '$organization',
     };
 
     try {
@@ -360,14 +360,14 @@ class ApiService {
   }
 
   //GET /clients/{clientId}/projects
-  Future <List<ProjectModel>> getProjects(String clientId) async {
 
+  Future<List<ProjectModel>> getProjects(String clientId) async {
     String? token = await _secureStorage.readData('token');
     print(clientId);
     final url = Uri.parse('$_baseUrl/clients/$clientId/projects');
     final headers = {
-      'Content-Type' : 'application/json',
-      'Authorization' : 'Bearer $token'
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
     };
     final client = NoRedirectsClient();
     final response = await client.get(url, headers: headers);
@@ -379,8 +379,91 @@ class ApiService {
     } else {
       print('Failed to load projects: ${response.statusCode}');
       throw Exception("Failed to load projects: ${response.statusCode}");
-    } 
-
+    }
   }
 
+  Future<List<Event>> getClockingMonthView(DateTime start, DateTime end) async {
+    String formattedStart =
+        "${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}";
+    String formattedEnd =
+        "${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}";
+
+    String? token = await _secureStorage.readData('token');
+    String? organization = await _secureStorage.readData('organizationId');
+    String? userId = await _secureStorage.readData('id');
+
+    final url = Uri.parse(
+      '$_baseUrl/clockings/calendar/$formattedStart/$formattedEnd/$userId',
+    );
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Organization': '$organization',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print('Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        print('Response is 200 client');
+
+        return data.map((json) {
+          final calenderResponse = CalendarResponse.fromJson(json);
+          return Event(
+            startTime: DateTime(
+              calenderResponse.day.year,
+              calenderResponse.day.month,
+              calenderResponse.day.day,
+            ), // Start om 09:00
+            endTime: DateTime(
+              calenderResponse.day.year,
+              calenderResponse.day.month,
+              calenderResponse.day.day,
+            ), // Eindigt om 17:00
+            color: Color(
+              int.parse(calenderResponse.color.replaceFirst("#", "0xFF")),
+            ), // Converteert HEX naar Color
+          );
+        }).toList();
+      } else {
+        throw Exception("Failed to load events");
+      }
+    } catch (e) {
+      print('Error fetching events: $e');
+      throw Exception(e);
+    }
+  }
+
+  Future<ClockingDayView> getClockingDayView(String day) async {
+    String? token = await _secureStorage.readData('token');
+    String? userId = await _secureStorage.readData('id');
+
+    final param = {'userId': userId, 'date': day};
+    final url = Uri.parse(
+      '$_baseUrl/clockings/day_overview',
+    ).replace(queryParameters: param);
+    print(url);
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      print('Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return ClockingDayView.fromJson(data);
+      } else {
+        throw Exception("Failed to load events");
+      }
+    } catch (e) {
+      print('Error fetching events: $e');
+      throw Exception(e.toString());
+    }
+  }
 }
