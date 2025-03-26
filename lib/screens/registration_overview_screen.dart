@@ -1,9 +1,14 @@
 
 
+import 'package:buildbase_app_flutter/model/clocking_location.dart';
+import 'package:buildbase_app_flutter/model/clocking_temp_work_response.dart';
+import 'package:buildbase_app_flutter/model/temp_clocking_request_model.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
@@ -13,7 +18,7 @@ import 'dart:async';
 class RegistrationOverviewScreen extends StatefulWidget {
   final String startDate;
   final String startTime;
-  final String? endDate;
+  final String endDate;
   final String clientName;
   final String projectName;
   final String? date;
@@ -22,11 +27,13 @@ class RegistrationOverviewScreen extends StatefulWidget {
     Key? key,
     required this.startDate,
     required this.startTime,
-    required this.endDate,
+    String? endDate,
     required this.clientName,
     required this.projectName,
     required this.date,
-  }) : super(key: key);
+  }) : endDate = endDate ?? startDate, 
+        super(key: key);
+  
 
   @override
   _RegistrationOverviewScreenState createState() =>
@@ -40,8 +47,10 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   
   late String _currentTime;
   late Timer _timer;
-  String selectedClientName = "";
-  String selectedProjectName = "";
+  String selectedClientName = '';
+  String selectedProjectName = '';
+  String startTime = '';
+  String day = '';
 
   @override
   void initState() {
@@ -73,6 +82,71 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
     });
   }
 
+  Future<void> getClockingDetails(TempClockingRequestModel tempwork) async {
+
+    String? startTime = await secure.readData('startTime');
+    String? day = await secure.readData('day');
+    // try {
+    //   final tempWork = await apiService.getTempWork();
+
+    //   if (tempWork.clientId.isNotEmpty)
+    //   String startDate = tempWork.startTime.localTime;
+
+
+    // }
+  }
+
+  Future<void> _clockOut() async {
+    final String? posClient = await secure.readData('selectedClientName');
+    final String? posProject = await secure.readData('selectedProjectName');
+
+    if (posClient != null && posProject != null && posClient.isNotEmpty && posProject.isNotEmpty){
+
+      try {
+
+        final position = await location.getCurrentLocation();
+        final List<Placemark> placemarks = await placemarkFromCoordinates(
+          position!.latitude, 
+          position.longitude
+        );
+
+        String? city = '';
+        String? country = '';
+
+        if (placemarks.isNotEmpty){
+          final place = placemarks.first;
+          city = place.locality ?? '';
+          country = place.isoCountryCode ?? '';
+        }
+
+        final ClockingLocation clockingLocation = ClockingLocation(
+          longitude: position.longitude, 
+          latitude: position.latitude, 
+          city: city, 
+          countryCode: country
+          );
+
+        final TempClockingRequestModel clockingRequest = TempClockingRequestModel(
+          clientId: selectedClientName, 
+          projectId: selectedProjectName, 
+          breakTime: false, 
+          clockingLocation: clockingLocation, 
+          comment: "Clocked out via mobileApp"
+        );
+
+        print('before clock out api call in screen');
+
+        await apiService.postTempWork(clockingRequest);
+          // print('Request: ${tempWorkResponse!.toJson()}');
+      } catch (e) {
+        throw Exception(e);
+      }
+
+      
+    }
+  }
+  
+
   @override
   void dispose() {
     _timer.cancel();
@@ -80,9 +154,20 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   }
 
   void _stopTimer() {
-    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
-    timerProvider.stopTimer(); // Stop de timer
-    timerProvider.resetTimer(); // Reset de timer
+    DateTime now = DateTime.now();
+    DateTime startTime = DateTime.parse(widget.startDate).toUtc();
+    print('testing stop timer ${now.difference(startTime).inSeconds} verschil');
+    if (now.difference(startTime).inSeconds < 60) {
+      print('You need to clock in for more than a minute');
+      return;
+    } else if (now.difference(startTime).inSeconds > 60) {
+      final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+      timerProvider.stopTimer(); // Stop de timer
+      timerProvider.resetTimer(); // Reset de timer
+      _clockOut(); 
+      context.go('/clock-in');
+    }
+
   }
 
   @override
@@ -107,7 +192,7 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   children: [
                     const Icon(Icons.arrow_back, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text('Terug naar ${widget.date ?? ''}',
+                    Text('Terug naar ${_formatDate(widget.startDate)}',
                         style: const TextStyle(
                             fontSize: 14, color: Colors.grey)),
                   ],
@@ -130,12 +215,12 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   Expanded(
                       child: _buildUnderlinedField(
                           'Van Dag *',
-                          widget.startDate != null ? _formatDate(widget.startDate!) : '',
+                          _formatDate(widget.startDate),
                           Icons.calendar_today)),
                   const SizedBox(width: 16),
                   Expanded(
                       child: _buildUnderlinedField(
-                          'Van Uur *', timerProvider.startTime, Icons.access_time)), // Gebruik de opgeslagen starttijd
+                          'Van Uur *', _formatTime(widget.startDate), Icons.access_time)), // Gebruik de opgeslagen starttijd
                 ],
               ),
               const SizedBox(height: 16),
@@ -144,7 +229,7 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
                   Expanded(
                       child: _buildUnderlinedField(
                           'Tot Dag *',
-                          widget.endDate != null ? _formatDate(widget.endDate!) : '',
+                          _formatDate(widget.endDate),
                           Icons.calendar_today)),
                   const SizedBox(width: 16),
                   Expanded(
@@ -169,8 +254,8 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    _stopTimer(); // Stop de timer wanneer de knop wordt ingedrukt
-                    context.go('/clocking-details');
+                    _stopTimer();// Stop de timer wanneer de knop wordt ingedrukt
+                    // context.go('/clock-in');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -195,6 +280,24 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
         ),
       ),
     );
+  }
+}
+
+String _formatTime(String? dateTime) {
+  if (dateTime == null || dateTime.isEmpty) return '';
+  try {
+    final parsedTime = DateTime.parse(dateTime);
+    final formattableTime = parsedTime.add(const Duration(hours: 1));
+    String formattedTime = DateFormat('hh:mm a').format(formattableTime);
+
+
+    if (formattedTime.startsWith('0')) {
+      formattedTime = formattedTime.substring(1);
+    }
+
+    return formattedTime;
+  } catch (e) {
+    return dateTime;
   }
 }
 

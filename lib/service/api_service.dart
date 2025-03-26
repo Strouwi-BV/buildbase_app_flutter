@@ -262,7 +262,7 @@ class ApiService {
         final String endTimeJson = json.encode(tempWorkClockIn.endTime);
         final String locationJson = json.encode(tempWorkClockIn.clockingLocation);
         final String fullResponse = json.encode(tempWorkClockIn.toJson());
-        final String? startDateTime;
+        
 
         await _secureStorage.writeData('id', tempWorkClockIn.id);
         await _secureStorage.writeData('userId', tempWorkClockIn.userId);
