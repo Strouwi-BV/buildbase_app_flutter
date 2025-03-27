@@ -570,4 +570,36 @@ class ApiService {
       throw Exception('Failed to load genders');
     }
   }
+
+  Future<List<String>> getCivilStatuses() async {
+  final String? organizationId = await _secureStorage.readData('organizationId');
+  final String? token = await _secureStorage.readData('token');
+
+  if (organizationId == null || token == null) {
+    print("Organization ID or Token is missing.");
+    return [];
+  }
+
+  final url = Uri.parse('$_baseUrl/resources/civil-statuses');
+  final headers = {
+    'Content-Type': 'application/json',
+    'Organization': organizationId,
+    'Authorization': 'Bearer $token',
+  };
+
+  try {
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> statuses = jsonDecode(response.body);
+      return statuses.map((status) => status.toString()).toList();
+    } else {
+      print('Failed to fetch civil statuses: ${response.statusCode}');
+      return [];
+    }
+  } catch (e) {
+    print('Error fetching civil statuses: $e');
+    return [];
+  }
+}
 }
