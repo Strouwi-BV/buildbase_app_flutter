@@ -40,7 +40,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
         description: _descriptionController.text,
         startTime: startDateTime,
         endTime: endDateTime,
-        location: _selectedLocation,
         color: _selectedColor,
       );
       Navigator.of(context).pop(newEvent);

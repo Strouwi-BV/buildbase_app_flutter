@@ -17,6 +17,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late DateTime _endTime;
   late TextEditingController _locationController;
   late Color _eventColor;
+  late String _clientName;
+  late String _projectName;
 
   @override
   void initState() {
@@ -26,8 +28,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
     );
     _startTime = widget.event.startTime;
     _endTime = widget.event.endTime;
-    _locationController = TextEditingController(text: widget.event.location);
     _eventColor = widget.event.color;
+    _clientName = widget.event.clientName!;
+    _projectName = widget.event.projectName!;
   }
 
   @override
@@ -108,7 +111,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 description: _descriptionController.text,
                 startTime: _startTime,
                 endTime: _endTime,
-                location: _locationController.text,
                 color: _eventColor,
               );
               Navigator.pop(context, updatedEvent);
@@ -135,6 +137,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     labelText: 'Description',
                     prefixIcon: Icon(Icons.description),
                   ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: Text('Client: ${_clientName}'),
+                  onTap: () => _selectTime(context, true),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: Text('Project: ${_projectName}'),
+                  onTap: () => _selectTime(context, true),
                 ),
                 const SizedBox(height: 16),
                 TextField(

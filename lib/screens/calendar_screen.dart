@@ -393,28 +393,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 markerBuilder: (context, date, events) {
                   if (events.isEmpty) return null;
 
-                  final visibleCount = 4; // Aantal bolletjes om te tonen
+                  final visibleCount = 3; // Aantal bolletjes om te tonen
                   final extraCount = events.length - visibleCount;
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Toon eerste X bolletjes
                       ...events
                           .take(visibleCount)
                           .map((e) => EventIndicator(event: e as Event)),
-                      // Toon "+X" indicator als er meer zijn
                       if (extraCount > 0)
                         Container(
-                          margin: const EdgeInsets.only(left: 2),
                           child: Text(
                             '+',
-                            style: TextStyle(
-                              color:
-                                  Colors
-                                      .grey, // Correcte syntax voor zwarte kleur
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Colors.grey),
                           ),
                         ),
                     ],

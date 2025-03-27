@@ -69,7 +69,6 @@ class EventDetailsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.location_on),
                     const SizedBox(width: 10),
-                    Text(event.location ?? 'No location'),
                   ],
                 ),
                 const SizedBox(height: 20),

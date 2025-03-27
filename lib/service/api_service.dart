@@ -376,7 +376,6 @@ class ApiService {
 
     try {
       final response = await http.get(url, headers: headers);
-      print('Response: ${response.body}');
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
@@ -417,7 +416,6 @@ class ApiService {
     final url = Uri.parse(
       '$_baseUrl/clockings/day_overview',
     ).replace(queryParameters: param);
-    print(url);
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
