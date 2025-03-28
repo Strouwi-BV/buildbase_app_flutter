@@ -4,7 +4,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:buildbase_app_flutter/screens/add_event_screen.dart';
 import 'package:buildbase_app_flutter/screens/event_details_screen.dart';
 import 'package:buildbase_app_flutter/screens/edit_event_screen.dart';
-import 'package:go_router/go_router.dart';
 import 'header_bar_screen.dart';
 import 'package:buildbase_app_flutter/model/event_model.dart';
 

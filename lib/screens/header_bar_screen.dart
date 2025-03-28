@@ -1,3 +1,4 @@
+import 'package:buildbase_app_flutter/service/timer_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
@@ -12,6 +13,7 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final timerProvider = TimerProvider();
     return AppBar(
       backgroundColor: const Color(0xff13263B),
       iconTheme: const IconThemeData(color: Colors.white),
@@ -22,6 +24,8 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () {
               String currentRoute = GoRouterState.of(context).matchedLocation;
               GoRouter.of(context).push('/menu', extra: currentRoute);
+              timerProvider.checkActiveClocking();
+
             },
           );
         },

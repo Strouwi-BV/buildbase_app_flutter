@@ -1,10 +1,12 @@
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
+import 'package:buildbase_app_flutter/service/timer_service.dart';
 import 'package:flutter/material.dart';
 import 'package:buildbase_app_flutter/screens/header_bar_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
 
@@ -19,6 +21,7 @@ class SettingsScreen extends StatefulWidget {
 
     final SecureStorageService secure = SecureStorageService();
     final LocationService location = LocationService();
+    final timerProvider = TimerProvider();
     final apiService = ApiService();
     Position? _currentLocation;
     LatLng? _currentCoordinates;
@@ -78,6 +81,14 @@ class SettingsScreen extends StatefulWidget {
         nearestAddress = 'Address not found';
       });
     }
+  }
+
+  void resetTimer() {
+
+    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
+
+    timerProvider.resetTimer();
+
   }
 
 
@@ -145,6 +156,32 @@ class SettingsScreen extends StatefulWidget {
                   ElevatedButton(
                     onPressed: apiService.getTempWork, 
                     child: const Text("Get avatar"),
+                  ),
+                ],
+              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: [
+              //     SizedBox(
+              //       height: 10,
+              //     ),
+              //     Text(
+              //       nearestAddress ?? "No location yet"
+              //     ),
+              //   ],
+              // ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+
+                  SizedBox(
+                    height: 10,
+                  ),
+                  ElevatedButton(
+                    onPressed: timerProvider.resetTimer, 
+                    child: const Text("Reset Timer"),
                   ),
                 ],
               ),

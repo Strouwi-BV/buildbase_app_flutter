@@ -86,14 +86,6 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
 
     String? startTime = await secure.readData('startTime');
     String? day = await secure.readData('day');
-    // try {
-    //   final tempWork = await apiService.getTempWork();
-
-    //   if (tempWork.clientId.isNotEmpty)
-    //   String startDate = tempWork.startTime.localTime;
-
-
-    // }
   }
 
   Future<void> _clockOut() async {
@@ -154,14 +146,20 @@ class _RegistrationOverviewScreenState extends State<RegistrationOverviewScreen>
   }
 
   void _stopTimer() {
+    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
     DateTime now = DateTime.now();
-    DateTime startTime = DateTime.parse(widget.startDate).toUtc().add(const Duration(hours: 1));
+    DateTime startTime = DateTime.parse(widget.startDate).toUtc().subtract(const Duration(hours: 1));
     print('testing stop timer ${now.difference(startTime).inSeconds} verschil');
     if (now.difference(startTime).inSeconds < 60) {
       print('You need to clock in for more than a minute');
-      return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("You need to clock in for more than a minute")),
+      );
+      timerProvider.stopTimer(); // Stop de timer
+      timerProvider.resetTimer(); // Reset de timer
+      _clockOut();
+      context.go('/clock-in');
     } else if (now.difference(startTime).inSeconds > 60) {
-      final timerProvider = Provider.of<TimerProvider>(context, listen: false);
       timerProvider.stopTimer(); // Stop de timer
       timerProvider.resetTimer(); // Reset de timer
       _clockOut(); 
@@ -287,7 +285,7 @@ String _formatTime(String? dateTime) {
   if (dateTime == null || dateTime.isEmpty) return '';
   try {
     final parsedTime = DateTime.parse(dateTime);
-    final formattableTime = parsedTime.add(const Duration(hours: 1));
+    final formattableTime = parsedTime.subtract(const Duration(hours: 1));
     String formattedTime = DateFormat('hh:mm a').format(formattableTime);
 
 

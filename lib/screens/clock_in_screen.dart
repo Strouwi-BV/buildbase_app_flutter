@@ -5,9 +5,11 @@ import 'package:buildbase_app_flutter/model/temp_clocking_request_model.dart';
 import 'package:buildbase_app_flutter/service/api_service.dart';
 import 'package:buildbase_app_flutter/service/location_service.dart';
 import 'package:buildbase_app_flutter/service/secure_storage_service.dart';
+import 'package:buildbase_app_flutter/service/timer_service.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'header_bar_screen.dart';
 
 class ClockInScreen extends StatefulWidget {
@@ -52,12 +54,6 @@ class _ClockInScreenState extends State<ClockInScreen> {
       projects = client.projects;
       isLoadingProjects = false;
     });
-
-    // List<ProjectModel> fetchedProjects = await apiService.getProjects(client.id);
-    // final filteredProjects = fetchedProjects.where((p) => p.clientId == client.id).toList();
-    // setState(() {
-    //   projects = fetchedProjects;
-    // });
   }
 
   void _onClientSelected(ClientResponse? client) {
@@ -84,7 +80,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   Future<void> _startClockIn() async {
-    final predictedEndTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(hours: 8)));
+    final timerProvider = Provider.of<TimerProvider>(context, listen: false);
     final String? posClient = await secure.readData('selectedClientName');
     final String? posProject = await secure.readData('selectedProjectName');
 
@@ -138,6 +134,15 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
           String startDate = tempWorkResponse.startTime.getUtcTimeIso();
           String? endDate = tempWorkResponse.endTime?.getUtcTimeIso();
+          timerProvider.startTimer();
+
+          await secure.writeData('currentStartTime', startTime);
+          await secure.writeData('currentStartDate', startDate);
+          await secure.writeData('currentEndTime', endTime);
+          await secure.writeData('currentEndDate', endDate ?? '');
+          await secure.writeData('currentClientName', clientName);
+          await secure.writeData('currentProjectName', projectName);
+          await secure.writeData('currentDate', day ?? '');
 
           context.go(
             '/registration-overview',
@@ -158,9 +163,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
       setState(() {
         _startTime = TimeOfDay.now().format(context);
-        _endTime = predictedEndTime.format(context);
-        
-        // _endTime = predictedEndTime.format(context);
+
       });
 
       
